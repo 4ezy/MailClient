@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MailClient"
         mc:Ignorable="d"
         Title="MailClient: Авторизация" Height="300" Width="450" ResizeMode="NoResize"
-        ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner" FontSize="14">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="45"/>
@@ -21,20 +21,20 @@
         <Label Content="Логин" Grid.Row="1" FontSize="16" HorizontalAlignment="Center"
                VerticalAlignment="Bottom"/>
         <TextBox x:Name="loginTextBox" Grid.Row="2" Width="200" Height="24" 
-                 HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="14"/>
+                 HorizontalAlignment="Center" VerticalAlignment="Top"/>
         <Label Content="Пароль" Grid.Row="3" FontSize="16" HorizontalAlignment="Center"
                VerticalAlignment="Bottom"/>
         <TextBox x:Name="passwordTextBox" Grid.Row="4" Width="200" Height="24" 
-                 HorizontalAlignment="Center" VerticalAlignment="Top" FontSize="14"/>
+                 HorizontalAlignment="Center" VerticalAlignment="Top"/>
         <CheckBox x:Name="remeberMeCheckBox" Content="Запомнить меня" Grid.Row="5"
-                  Width="200" Height="30" VerticalContentAlignment="Center" FontSize="14"/>
+                  Width="200" Height="30" VerticalContentAlignment="Center"/>
         <Grid Grid.Row="6" Width="200">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Content="Вход" Margin="0,0,10,0" FontSize="14"/>
-            <Button Grid.Column="1" Content="Регистрация" Margin="10,0,0,0" FontSize="14"/>
+            <Button x:Name="enterButton" Grid.Column="0" Content="Вход" Margin="0,0,10,0"/>
+            <Button x:Name="registrationButton" Grid.Column="1" Content="Регистрация" Margin="10,0,0,0" Click="RegistrationButton_Click"/>
         </Grid>
     </Grid>
 </Window>

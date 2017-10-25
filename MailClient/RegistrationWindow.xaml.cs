@@ -15,19 +15,13 @@ using System.Windows.Shapes;
 namespace MailClient
 {
     /// <summary>
-    /// Логика взаимодействия для AuthWindow.xaml
+    /// Логика взаимодействия для RegistrationWindow.xaml
     /// </summary>
-    public partial class AuthWindow : Window
+    public partial class RegistrationWindow : Window
     {
-        public AuthWindow()
+        public RegistrationWindow()
         {
             InitializeComponent();
-        }
-
-        private void RegistrationButton_Click(object sender, RoutedEventArgs e)
-        {
-            RegistrationWindow registrationWindow = new RegistrationWindow() { Owner = this };
-            registrationWindow.ShowDialog();
         }
     }
 }
