@@ -21,31 +21,25 @@ namespace MailClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly string _userDataPath;
-        public string UserDataPath => _userDataPath;
-
-        private readonly string _directoryUserDataPath;
-        public string DirectoryUserDataPath => _directoryUserDataPath;
-
         public User CurrentUser { get; set; }
+        public static readonly string UserDirectoryPath = @"C:\Users\" + Environment.UserName + @"\MailClient\";
+        public static readonly string UserDataPath = MainWindow.UserDirectoryPath + Environment.UserName + "_userdata.mcd";
 
         public MainWindow()
         {
             InitializeComponent();
-            this._directoryUserDataPath = @"C:\Users\" + Environment.UserName + @"\MailClient\";
-            this._userDataPath = DirectoryUserDataPath + Environment.UserName + "_userdata.mcd";
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (!Directory.Exists(DirectoryUserDataPath))
+            if (!Directory.Exists(MainWindow.UserDirectoryPath))
             {
-                Directory.CreateDirectory(DirectoryUserDataPath);
+                Directory.CreateDirectory(MainWindow.UserDirectoryPath);
             }
 
-            if (File.Exists(this.UserDataPath))
+            if (File.Exists(MainWindow.UserDataPath))
             {
-                this.CurrentUser = BinarySerializer.Deserialize<User>(this.UserDataPath);
+                this.CurrentUser = BinarySerializer.Deserialize<User>(MainWindow.UserDataPath);
             }
             else
             {

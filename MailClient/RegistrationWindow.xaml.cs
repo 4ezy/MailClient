@@ -19,8 +19,7 @@ namespace MailClient
     /// </summary>
     public partial class RegistrationWindow : Window
     {
-        private User _registredUser;
-        public User RegistredUser { get => _registredUser; }
+        public User RegistredUser { get; private set; }
 
         public RegistrationWindow()
         {
@@ -61,7 +60,7 @@ namespace MailClient
                     //((MainWindow)((AuthWindow)this.Owner).Owner).CurrentUser = registredUser;
                     //string path = @"C:\Users\" + Environment.UserName + @"\MailClient\userdata.mcd";
                     //BinarySerializer.Serialize(((MainWindow)Owner).CurrentUser, path);
-                    this._registredUser = user;
+                    this.RegistredUser = user;
                     this.Close();
                 }
             }

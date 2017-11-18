@@ -21,34 +21,29 @@ namespace MailClient
     /// </summary>
     public partial class AuthWindow : Window
     {
-        private User _authUser;
-        public User AuthUser => _authUser;
-
-        private List<User> _users;
-        public List<User> Users => _users;
-
-        private readonly string _usersDataPath = "usersdata.mcd";
-        public string UsersDataPath => _usersDataPath;
+        public User AuthUser { get; private set; }
+        public List<User> Users { get; private set; }
+        public static readonly string UsersDataPath = "usersdata.mcd";
 
         public AuthWindow()
         {
             this.InitializeComponent();
 
-            if (File.Exists(_usersDataPath))
-                _users = BinarySerializer.Deserialize<List<User>>(_usersDataPath);
+            if (File.Exists(AuthWindow.UsersDataPath))
+                this.Users = BinarySerializer.Deserialize<List<User>>(AuthWindow.UsersDataPath);
             else
-                _users = new List<User>();
+                this.Users = new List<User>();
         }
 
         private void RegistrationButton_Click(object sender, RoutedEventArgs e)
         {
             RegistrationWindow registrationWindow = new RegistrationWindow() { Owner = this };
             registrationWindow.ShowDialog();
-            _authUser = registrationWindow.RegistredUser;
-            if (_authUser != null)
+            this.AuthUser = registrationWindow.RegistredUser;
+            if (this.AuthUser != null)
             {
-                _users.Add(_authUser);
-                BinarySerializer.Serialize(_users, _usersDataPath);
+                this.Users.Add(this.AuthUser);
+                BinarySerializer.Serialize(this.Users, AuthWindow.UsersDataPath);
                 this.Close();
             }            
         }
@@ -57,12 +52,12 @@ namespace MailClient
         {
             bool userExists = false;
 
-            for (int i = 0; i < _users.Count && userExists == false; i++)
+            for (int i = 0; i < this.Users.Count && userExists == false; i++)
             {
-                if (_users[i].Login == loginTextBox.Text &&
-                    _users[i].Password == passwordTextBox.Password)
+                if (this.Users[i].Login == loginTextBox.Text &&
+                    this.Users[i].Password == passwordTextBox.Password)
                 {
-                    _authUser = _users[i];
+                    this.AuthUser = this.Users[i];
                     userExists = true;
                 }
             }
@@ -70,8 +65,8 @@ namespace MailClient
             if (userExists)
             {
                 if (remeberMeCheckBox.IsChecked == true)
-                    BinarySerializer.Serialize(_authUser,
-                        ((MainWindow)this.Owner).UserDataPath);
+                    BinarySerializer.Serialize(this.AuthUser,
+                        MainWindow.UserDataPath);
 
                 this.Close();
             }
