@@ -24,7 +24,7 @@
                  HorizontalAlignment="Center" VerticalAlignment="Top"/>
         <Label Content="Пароль" Grid.Row="3" FontSize="16" HorizontalAlignment="Center"
                VerticalAlignment="Bottom"/>
-        <TextBox x:Name="passwordTextBox" Grid.Row="4" Width="200" Height="24" 
+        <PasswordBox x:Name="passwordTextBox" Grid.Row="4" Width="200" Height="24" 
                  HorizontalAlignment="Center" VerticalAlignment="Top"/>
         <CheckBox x:Name="remeberMeCheckBox" Content="Запомнить меня" Grid.Row="5"
                   Width="200" Height="30" VerticalContentAlignment="Center"/>
@@ -33,7 +33,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="enterButton" Grid.Column="0" Content="Вход" Margin="0,0,10,0"/>
+            <Button x:Name="enterButton" Grid.Column="0" Content="Вход" Margin="0,0,10,0" Click="EnterButton_Click"/>
             <Button x:Name="registrationButton" Grid.Column="1" Content="Регистрация" Margin="10,0,0,0" Click="RegistrationButton_Click"/>
         </Grid>
     </Grid>

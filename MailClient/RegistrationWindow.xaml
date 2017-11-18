@@ -24,7 +24,8 @@
         <Label Content="Логин" Grid.Row="2"/>
         <TextBox x:Name="loginTextBox" Grid.Row="3"/>
         <Label Content="Пароль" Grid.Row="4"/>
-        <TextBox x:Name="passwordTextBox" Grid.Row="5"/>
-        <Button x:Name="applyRegistrationButton" Grid.Row="7" Content="Подтвердить" Width="100" HorizontalAlignment="Left"/>
+        <PasswordBox x:Name="passwordTextBox" Grid.Row="5"/>
+        <Button x:Name="applyRegistrationButton" Grid.Row="7" Content="Подтвердить"
+                Width="100" HorizontalAlignment="Left" Click="ApplyRegistrationButton_Click"/>
     </Grid>
 </Window>
