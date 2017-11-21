@@ -39,7 +39,9 @@ namespace MailClient
 
             if (File.Exists(MainWindow.UserDataPath))
             {
-                this.CurrentUser = BinarySerializer.Deserialize<User>(MainWindow.UserDataPath);
+                byte[] data = Encrypter.AesDecryptFile(MainWindow.UserDataPath,
+                    Encrypter.DefaultKey, Encrypter.DefaultIV);
+                this.CurrentUser = BinarySerializer.Deserialize<User>(data);
             }
             else
             {

@@ -30,7 +30,11 @@ namespace MailClient
             this.InitializeComponent();
 
             if (File.Exists(AuthWindow.UsersDataPath))
-                this.Users = BinarySerializer.Deserialize<List<User>>(AuthWindow.UsersDataPath);
+            {
+                byte[] data = Encrypter.AesDecryptFile(AuthWindow.UsersDataPath,
+                    Encrypter.DefaultKey, Encrypter.DefaultIV);
+                this.Users = BinarySerializer.Deserialize<List<User>>(data);
+            }
             else
                 this.Users = new List<User>();
         }
@@ -43,7 +47,10 @@ namespace MailClient
             if (this.AuthUser != null)
             {
                 this.Users.Add(this.AuthUser);
-                BinarySerializer.Serialize(this.Users, AuthWindow.UsersDataPath);
+                byte[] serData = BinarySerializer.Serialize(this.Users);
+                byte[] encSerData = Encrypter.AesEncrypt(serData,
+                    Encrypter.DefaultKey, Encrypter.DefaultIV);
+                File.WriteAllBytes(AuthWindow.UsersDataPath, encSerData);
                 this.Close();
             }            
         }
@@ -65,8 +72,13 @@ namespace MailClient
             if (userExists)
             {
                 if (remeberMeCheckBox.IsChecked == true)
-                    BinarySerializer.Serialize(this.AuthUser,
-                        MainWindow.UserDataPath);
+                {
+                    byte[] serData = BinarySerializer.Serialize(this.AuthUser);
+                    byte[] encSerData = Encrypter.AesEncrypt(serData,
+                        Encrypter.DefaultKey, Encrypter.DefaultIV);
+                    File.WriteAllBytes(MainWindow.UserDataPath, encSerData);
+                }
+                    
 
                 this.Close();
             }

@@ -27,6 +27,27 @@ namespace MailClient
             }
         }
 
+        public static byte[] Serialize<T>(T obj)
+        {
+            byte[] serData;
+
+            try
+            {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    BinaryFormatter binaryFormatter = new BinaryFormatter();
+                    binaryFormatter.Serialize(ms, obj);
+                    serData = ms.GetBuffer();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+
+            return serData;
+        }
+
         public static T Deserialize<T>(string path)
         {
             try
@@ -36,6 +57,22 @@ namespace MailClient
                 {
                     BinaryFormatter binaryFormatter = new BinaryFormatter();
                     return (T)binaryFormatter.Deserialize(stream);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public static T Deserialize<T>(byte[] data)
+        {
+            try
+            {
+                using (MemoryStream ms = new MemoryStream(data))
+                {
+                    BinaryFormatter binaryFormatter = new BinaryFormatter();
+                    return (T)binaryFormatter.Deserialize(ms);
                 }
             }
             catch (Exception)

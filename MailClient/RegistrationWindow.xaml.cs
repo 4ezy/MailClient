@@ -57,9 +57,6 @@ namespace MailClient
                 }
                 else
                 {
-                    //((MainWindow)((AuthWindow)this.Owner).Owner).CurrentUser = registredUser;
-                    //string path = @"C:\Users\" + Environment.UserName + @"\MailClient\userdata.mcd";
-                    //BinarySerializer.Serialize(((MainWindow)Owner).CurrentUser, path);
                     this.RegistredUser = user;
                     this.Close();
                 }
