@@ -6,8 +6,11 @@
         xmlns:local="clr-namespace:MailClient"
         mc:Ignorable="d"
         Title="MailClient" Width="800" Height="600"
-        ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+        ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded">
     <Grid>
-        
+        <Menu>
+            <MenuItem x:Name="optionsMenuItem" Header="Настройки" Click="OptionsMenuItem_Click"/>
+        </Menu>
     </Grid>
 </Window>

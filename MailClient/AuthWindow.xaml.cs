@@ -78,7 +78,6 @@ namespace MailClient
                         Encrypter.DefaultKey, Encrypter.DefaultIV);
                     File.WriteAllBytes(MainWindow.UserDataPath, encSerData);
                 }
-                    
 
                 this.Close();
             }

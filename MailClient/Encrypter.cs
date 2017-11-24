@@ -25,16 +25,9 @@ namespace MailClient
             };
             ICryptoTransform ct = aes.CreateEncryptor();
             byte[] encData;
-            //byte[] keyLength = BitConverter.GetBytes(aes.Key.Length);
-            //byte[] ivLength = BitConverter.GetBytes(aes.IV.Length); 
 
             using (MemoryStream ms = new MemoryStream()) 
             {
-                //ms.Write(keyLength, 0, keyLength.Length);
-                //ms.Write(ivLength, 0, ivLength.Length);
-                //ms.Write(aes.Key, 0, aes.Key.Length);
-                //ms.Write(aes.IV, 0, aes.IV.Length);
-
                 using (CryptoStream cs = new CryptoStream(ms, ct, CryptoStreamMode.Write))
                 {
                     cs.Write(data, 0, data.Length);

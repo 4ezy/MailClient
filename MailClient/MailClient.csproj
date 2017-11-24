@@ -37,6 +37,9 @@
     <StartupObject>MailClient.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mail">
+      <HintPath>..\..\..\..\..\..\Libraries\C#\Mail\Redistributables\Net45\Mail.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
@@ -58,12 +61,23 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="BinarySerializer.cs" />
+    <Compile Include="EmailBox.cs" />
+    <Compile Include="EmailOptions.xaml.cs">
+      <DependentUpon>EmailOptions.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Encrypter.cs" />
+    <Compile Include="AppOptionsWindow.xaml.cs">
+      <DependentUpon>AppOptionsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RegistrationWindow.xaml.cs">
       <DependentUpon>RegistrationWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="User.cs" />
     <Page Include="AuthWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EmailOptions.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -82,6 +96,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="AppOptionsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="RegistrationWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

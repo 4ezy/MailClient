@@ -22,6 +22,7 @@ namespace MailClient
     public partial class MainWindow : Window
     {
         public User CurrentUser { get; set; }
+        public OptionsWindow OptionsWindow { get; set; }
         public static readonly string UserDirectoryPath = @"C:\Users\" + Environment.UserName + @"\MailClient\";
         public static readonly string UserDataPath = MainWindow.UserDirectoryPath + Environment.UserName + "_userdata.mcd";
 
@@ -52,7 +53,17 @@ namespace MailClient
 
             if (this.CurrentUser is null)
                 this.Close();
+
             // TODO: обработка, если юзер зашёл
+        }
+
+        private void OptionsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (OptionsWindow is null)
+            {
+                this.OptionsWindow = new OptionsWindow() { Owner = this };
+                this.OptionsWindow.ShowDialog();
+            }
         }
     }
 }
