@@ -25,7 +25,12 @@
         <TextBox x:Name="loginTextBox" Grid.Row="3"/>
         <Label Content="Пароль" Grid.Row="4"/>
         <PasswordBox x:Name="passwordTextBox" Grid.Row="5"/>
-        <Button x:Name="applyRegistrationButton" Grid.Row="7" Content="Подтвердить"
+        <StackPanel Grid.Row="7" Orientation="Horizontal">
+            <Button x:Name="applyRegistrationButton"  Content="Подтвердить"
                 Width="100" HorizontalAlignment="Left" Click="ApplyRegistrationButton_Click"/>
+            <Button x:Name="cancelRegistrationButton"  Content="Отмена"
+                Width="100" HorizontalAlignment="Left" Click="CancelRegistrationButton_Click" 
+                    Margin="10, 0, 0, 0"/>
+        </StackPanel>
     </Grid>
 </Window>

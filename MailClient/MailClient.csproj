@@ -37,8 +37,8 @@
     <StartupObject>MailClient.App</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Mail">
-      <HintPath>..\..\..\..\..\..\Libraries\C#\Mail\Redistributables\Net45\Mail.dll</HintPath>
+    <Reference Include="Mail, Version=3.0.17312.2008, Culture=neutral, PublicKeyToken=6dc438ab78a525b3, processorArchitecture=MSIL">
+      <HintPath>..\packages\Mail.dll.3.0.17312.2008\lib\Net45\Mail.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -62,8 +62,8 @@
     </ApplicationDefinition>
     <Compile Include="BinarySerializer.cs" />
     <Compile Include="EmailBox.cs" />
-    <Compile Include="EmailOptions.xaml.cs">
-      <DependentUpon>EmailOptions.xaml</DependentUpon>
+    <Compile Include="EmailOptionsWindow.xaml.cs">
+      <DependentUpon>EmailOptionsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Encrypter.cs" />
     <Compile Include="AppOptionsWindow.xaml.cs">
@@ -77,7 +77,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="EmailOptions.xaml">
+    <Page Include="EmailOptionsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -123,6 +123,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
