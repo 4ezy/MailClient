@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,25 +41,20 @@ namespace MailClient
                 {
                     Name = this.nameTextBox.Text,
                     Login = this.loginTextBox.Text,
-                    Password = this.passwordTextBox.Password
+                    Password = this.passwordTextBox.Password,
+                    EmailBoxes = new List<EmailBox>()
                 };
 
                 bool userExists = false;
 
-                for (int i = 0; i < ((AuthWindow)this.Owner).Users.Count && userExists == false; i++)
-                {
-                    if (((AuthWindow)this.Owner).Users[i].Login == user.Login)
-                        userExists = true;
-                }
-
-                if (userExists)
-                {
-                    MessageBox.Show("Пользователь с таким логином уже существует.", "Ошибка");
-                }
-                else
+                if (!File.Exists(MainWindow.UserDirectoryPath + user.Login + ".mcd"))
                 {
                     this.RegistredUser = user;
                     this.Close();
+                }
+                else
+                {
+                    MessageBox.Show("Пользователь с таким логином уже существует.", "Ошибка");
                 }
             }
         }

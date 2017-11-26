@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace MailClient
 {
     [Serializable]
-    public class User
+    public class User : ICloneable
     {
         public string Name { get; set; }
         public string Login { get; set; }
@@ -18,7 +18,18 @@ namespace MailClient
 
         public override string ToString()
         {
-            return string.Format("[Name: {0}; Login: {1}; Password: {2}]", this.Name, this.Login, this.Password);
+            string str = String.Format("[Name: {0}; Login: {1}; Password: {2}; EmailBoxes: [", this.Name, this.Login, this.Password);
+
+            if (this.EmailBoxes != null)
+            {
+                for (int i = 0; i < this.EmailBoxes.Count; i++)
+                {
+                    str += " EmailBox" + (i + 1) + ": " + this.EmailBoxes[i].ToString() + ";";
+                }
+            }
+
+            str += "]]";
+            return str;
         }
 
         public override bool Equals(object obj)
@@ -29,6 +40,23 @@ namespace MailClient
         public override int GetHashCode()
         {
             return this.ToString().GetHashCode();
+        }
+
+        public object Clone()
+        {
+            List<EmailBox> newCopy = new List<EmailBox>();
+            for (int i = 0; i < this.EmailBoxes.Count; i++)
+            {
+                newCopy.Add(this.EmailBoxes[i]);
+            }
+
+            return new User
+            {
+                Name = this.Name,
+                Login = this.Login,
+                Password = this.Password,
+                EmailBoxes = newCopy
+            };
         }
     }
 }

@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MailClient"
         mc:Ignorable="d"
-        Title="EmailOptions" Height="340" Width="500" ResizeMode="NoResize"
-        ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
+        Title="EmailOptions" Height="350" Width="500" ResizeMode="NoResize"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="Window_Loaded">
     <StackPanel Margin="20, 0, 20, 0">
         <Label Content="Сервер входящей почты (IMAP)"/>
         <TextBox x:Name="imapServerAddressTextBox"/>
@@ -21,8 +21,8 @@
         <Label Content="Пароль"/>
         <PasswordBox x:Name="passwordPasswordBox"/>
         <StackPanel Orientation="Horizontal">
-            <Button x:Name="acceptButton" Content="Подтвердить" Width="100" Margin="0, 10, 0, 0" Click="AcceptButton_Click"/>
-            <Button x:Name="cancelButton" Content="Отмена" Width="100" Margin="10, 10, 0, 0" Click="CancelButton_Click"/>
+            <Button x:Name="acceptButton" Content="Подтвердить" Width="100" Margin="0, 20, 0, 0" Click="AcceptButton_Click"/>
+            <Button x:Name="cancelButton" Content="Отмена" Width="100" Margin="10, 20, 0, 0" Click="CancelButton_Click"/>
         </StackPanel>
     </StackPanel>
 </Window>

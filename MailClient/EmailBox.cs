@@ -10,7 +10,8 @@ using Limilabs.Client;
 
 namespace MailClient
 {
-    public class EmailBox
+    [Serializable]
+    public class EmailBox : ICloneable
     {
         public string EmailAddress { get; set; }
         public string Password { get; set; }
@@ -107,6 +108,20 @@ namespace MailClient
                     Inbox.Add(new MailBuilder().CreateFromEml(eml));
                 }
             }
+        }
+
+        public object Clone()
+        {
+            return new EmailBox
+            {
+                EmailAddress = this.EmailAddress,
+                Password = this.Password,
+                ImapServerAddress = this.ImapServerAddress,
+                ImapPort = this.ImapPort,
+                SmtpServerAddress = this.SmtpServerAddress,
+                SmtpPort = this.SmtpPort,
+                Inbox = this.Inbox
+            };
         }
     }
 }

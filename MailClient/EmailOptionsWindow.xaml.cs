@@ -24,16 +24,6 @@ namespace MailClient
         public EmailOptionsWindow()
         {
             InitializeComponent();
-
-            if (EmailBox != null)
-            {
-                imapServerAddressTextBox.Text = EmailBox.ImapServerAddress;
-                imapPortTextBox.Text = Convert.ToString(EmailBox.ImapPort);
-                smtpServerAddressTextBox.Text = EmailBox.SmtpServerAddress;
-                smtpPortTextBox.Text = Convert.ToString(EmailBox.SmtpPort);
-                emailAddressTextBox.Text = EmailBox.EmailAddress;
-                passwordPasswordBox.Password = EmailBox.Password;
-            }
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -76,6 +66,19 @@ namespace MailClient
                 }
                 else
                     MessageBox.Show("При проверке данных была выявлена ошибка. Проверьте правильность введённых данных.", "Ошибка");
+            }
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (EmailBox != null)
+            {
+                imapServerAddressTextBox.Text = EmailBox.ImapServerAddress;
+                imapPortTextBox.Text = Convert.ToString(EmailBox.ImapPort);
+                smtpServerAddressTextBox.Text = EmailBox.SmtpServerAddress;
+                smtpPortTextBox.Text = Convert.ToString(EmailBox.SmtpPort);
+                emailAddressTextBox.Text = EmailBox.EmailAddress;
+                passwordPasswordBox.Password = EmailBox.Password;
             }
         }
     }

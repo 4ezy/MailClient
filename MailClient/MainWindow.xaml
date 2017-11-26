@@ -10,7 +10,9 @@
         Loaded="Window_Loaded">
     <Grid>
         <Menu>
-            <MenuItem x:Name="optionsMenuItem" Header="Настройки" Click="OptionsMenuItem_Click"/>
+            <MenuItem x:Name="sendMenuItem" Header="Отправить" Click="SendMenuItem_Click"/>
+            <MenuItem x:Name="optionsMenuItem" Header="Учётная запись" Click="OptionsMenuItem_Click"/>
+            <MenuItem x:Name="exitMenuItem" Header="Выход" Click="ExitMenuItem_Click"/>
         </Menu>
     </Grid>
 </Window>

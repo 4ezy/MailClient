@@ -22,21 +22,10 @@ namespace MailClient
     public partial class AuthWindow : Window
     {
         public User AuthUser { get; private set; }
-        public List<User> Users { get; private set; }
-        public static readonly string UsersDataPath = "usersdata.mcd";
 
         public AuthWindow()
         {
             this.InitializeComponent();
-
-            if (File.Exists(AuthWindow.UsersDataPath))
-            {
-                byte[] data = Encrypter.AesDecryptFile(AuthWindow.UsersDataPath,
-                    Encrypter.DefaultKey, Encrypter.DefaultIV);
-                this.Users = BinarySerializer.Deserialize<List<User>>(data);
-            }
-            else
-                this.Users = new List<User>();
         }
 
         private void RegistrationButton_Click(object sender, RoutedEventArgs e)
@@ -46,40 +35,39 @@ namespace MailClient
             this.AuthUser = registrationWindow.RegistredUser;
             if (this.AuthUser != null)
             {
-                this.Users.Add(this.AuthUser);
-                byte[] serData = BinarySerializer.Serialize(this.Users);
+                byte[] serData = BinarySerializer.Serialize(this.AuthUser);
                 byte[] encSerData = Encrypter.AesEncrypt(serData,
                     Encrypter.DefaultKey, Encrypter.DefaultIV);
-                File.WriteAllBytes(AuthWindow.UsersDataPath, encSerData);
+                File.WriteAllBytes(MainWindow.UserDirectoryPath + AuthUser.Login + ".mcd", encSerData);
                 this.Close();
             }            
         }
 
         private void EnterButton_Click(object sender, RoutedEventArgs e)
         {
-            bool userExists = false;
-
-            for (int i = 0; i < this.Users.Count && userExists == false; i++)
+            if (File.Exists(MainWindow.UserDirectoryPath + loginTextBox.Text + ".mcd"))
             {
-                if (this.Users[i].Login == loginTextBox.Text &&
-                    this.Users[i].Password == passwordTextBox.Password)
-                {
-                    this.AuthUser = this.Users[i];
-                    userExists = true;
-                }
-            }
+                byte[] userData = Encrypter.AesDecryptFile(MainWindow.UserDirectoryPath + loginTextBox.Text + ".mcd",
+                   Encrypter.DefaultKey, Encrypter.DefaultIV);
+                User user = BinarySerializer.Deserialize<User>(userData);
 
-            if (userExists)
-            {
-                if (remeberMeCheckBox.IsChecked == true)
+                if (user.Login == loginTextBox.Text &&
+                    user.Password == passwordTextBox.Password)
                 {
-                    byte[] serData = BinarySerializer.Serialize(this.AuthUser);
-                    byte[] encSerData = Encrypter.AesEncrypt(serData,
-                        Encrypter.DefaultKey, Encrypter.DefaultIV);
-                    File.WriteAllBytes(MainWindow.UserDataPath, encSerData);
-                }
+                    this.AuthUser = user;
 
-                this.Close();
+                    if (remeberMeCheckBox.IsChecked == true)
+                    {
+                        byte[] serData = BinarySerializer.Serialize(user.Login);
+                        byte[] encSerData = Encrypter.AesEncrypt(serData,
+                            Encrypter.DefaultKey, Encrypter.DefaultIV);
+                        File.WriteAllBytes(MainWindow.RememberMeDataPath, encSerData);
+                    }
+
+                    this.Close();
+                }
+                else
+                    MessageBox.Show("Неправильный логин или пароль!", "Ошибка");
             }
             else
             {
