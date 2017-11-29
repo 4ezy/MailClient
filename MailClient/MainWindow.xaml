@@ -9,10 +9,17 @@
         ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen"
         Loaded="Window_Loaded">
     <Grid>
-        <Menu>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20"/>
+            <RowDefinition Height="35"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0">
             <MenuItem x:Name="sendMenuItem" Header="Отправить" Click="SendMenuItem_Click"/>
             <MenuItem x:Name="optionsMenuItem" Header="Учётная запись" Click="OptionsMenuItem_Click"/>
             <MenuItem x:Name="exitMenuItem" Header="Выход" Click="ExitMenuItem_Click"/>
         </Menu>
+        <ComboBox x:Name="emailAccountsComboBox" Grid.Row="1" Width="150"
+                  HorizontalAlignment="Right" Margin="5" SelectionChanged="EmailAccountsComboBox_SelectionChanged" />
     </Grid>
 </Window>

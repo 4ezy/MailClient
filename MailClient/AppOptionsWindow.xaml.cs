@@ -59,6 +59,11 @@ namespace MailClient
                     this.User.EmailBoxes.Add(emailOptionsWindow.EmailBox);
                     emailAccountsListBox.Items.Add(
                         this.User.EmailBoxes[this.User.EmailBoxes.Count - 1].EmailAddress);
+                    ((MainWindow)this.Owner).emailAccountsComboBox.Items.Add(
+                        this.User.EmailBoxes[this.User.EmailBoxes.Count - 1].EmailAddress);
+                    ((MainWindow)this.Owner).emailAccountsComboBox.SelectedIndex =
+                        ((MainWindow)this.Owner).emailAccountsComboBox.Items.Count == 1 ?
+                        0 : ((MainWindow)this.Owner).emailAccountsComboBox.SelectedIndex;
                 }
                 else
                 {
@@ -98,8 +103,17 @@ namespace MailClient
                 if (MessageBox.Show("Вы уверены, что хотите удалить данные о почтовом ящике?", "Внимание",
                 MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes)
                 {
+                    if (emailAccountsListBox.SelectedIndex == this.User.SelectedEmailBoxIndex)
+                    {
+                        if (this.User.SelectedEmailBoxIndex != 0 && this.User.EmailBoxes.Count != 1)
+                            this.User.SelectedEmailBoxIndex--;
+                    }
                     this.User.EmailBoxes.RemoveAt(emailAccountsListBox.SelectedIndex);
+                    ((MainWindow)this.Owner).emailAccountsComboBox.Items.RemoveAt(emailAccountsListBox.SelectedIndex);
+
                     emailAccountsListBox.Items.RemoveAt(emailAccountsListBox.SelectedIndex);
+                    ((MainWindow)this.Owner).emailAccountsComboBox.SelectedIndex = this.User.SelectedEmailBoxIndex;
+                    this.User.SelectedEmailBoxIndex = emailAccountsListBox.SelectedIndex;
                 }
             }
             else
@@ -115,8 +129,11 @@ namespace MailClient
                 {
                     Owner = this,
                     EmailBox = this.User.EmailBoxes[emailAccountsListBox.SelectedIndex]
-                };
+            };
                 emailOptionsWindow.ShowDialog();
+                this.User.EmailBoxes[emailAccountsListBox.SelectedIndex] = emailOptionsWindow.EmailBox;
+                ((MainWindow)this.Owner).emailAccountsComboBox.Items[emailAccountsListBox.SelectedIndex] = 
+                    emailOptionsWindow.EmailBox.EmailAddress;
             }
             else
                 MessageBox.Show("Для изменения требуется выбрать почтовый ящик.", "Ошибка",

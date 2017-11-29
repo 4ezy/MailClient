@@ -12,6 +12,7 @@ namespace MailClient
         public string Name { get; set; }
         public string Login { get; set; }
         public string Password { get; set; }
+        public int SelectedEmailBoxIndex { get; set; }
         public List<EmailBox> EmailBoxes { get; set; }
 
         public User() { }

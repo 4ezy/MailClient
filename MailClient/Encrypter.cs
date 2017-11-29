@@ -20,7 +20,7 @@ namespace MailClient
 
         public static byte[] EncryptWithAesAndRsa(byte[] data, string keyContainerName)
         {
-            AesCryptoServiceProvider aes = new AesCryptoServiceProvider();
+            AesCryptoServiceProvider aes = new AesCryptoServiceProvider() { Mode = CipherMode.CBC };
             ICryptoTransform ct = aes.CreateEncryptor();
             CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName };
             RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(cspp);
@@ -55,8 +55,8 @@ namespace MailClient
 
         public static byte[] DecryptWithAesAndRsa(byte[] data, string keyContainerName)
         {
-            CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName }; // TODO: освободить
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(cspp);  // TODO: освободить
+            CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName };
+            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(cspp);
             byte[] decryptedData;
 
             using (MemoryStream ms = new MemoryStream(data))
@@ -93,7 +93,8 @@ namespace MailClient
                 AesCryptoServiceProvider aes = new AesCryptoServiceProvider()
                 {
                     Key = keyDecrypted,
-                    IV = iv
+                    IV = iv,
+                    Mode = CipherMode.CBC
                 };
                 ICryptoTransform ct = aes.CreateDecryptor();
                 ms.Seek(startEncryptedData, SeekOrigin.Begin);

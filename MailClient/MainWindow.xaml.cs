@@ -56,15 +56,26 @@ namespace MailClient
                 this.CurrentUser = authWindow.AuthUser;
             }
 
-            if (this.CurrentUser is null)
-                this.Close();
+            if (this.CurrentUser != null)
+            {
+                if (this.CurrentUser.EmailBoxes != null)
+                {
+                    emailAccountsComboBox.Items.Clear();
 
-            // TODO: обработка, если юзер зашёл
+                    foreach (EmailBox emailBox in this.CurrentUser.EmailBoxes)
+                    {
+                        this.emailAccountsComboBox.Items.Add(emailBox.EmailAddress);
+                        this.emailAccountsComboBox.SelectedIndex = emailAccountsComboBox.Items.Count != 0
+                            ? this.CurrentUser.SelectedEmailBoxIndex : -1;
+                    }
+                }
+            }
+            else
+                this.Close();
         }
 
         private void OptionsMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            // TODO: удалять старый файл
             AppOptionsWindow optionsWindow = new AppOptionsWindow()
             {
                 Owner = this,
@@ -100,6 +111,11 @@ namespace MailClient
         private void SendMenuItem_Click(object sender, RoutedEventArgs e)
         {
             
+        }
+
+        private void EmailAccountsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.CurrentUser.SelectedEmailBoxIndex = this.emailAccountsComboBox.SelectedIndex;
         }
     }
 }

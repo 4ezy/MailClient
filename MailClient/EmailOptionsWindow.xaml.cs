@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -20,6 +21,8 @@ namespace MailClient
     public partial class EmailOptionsWindow : Window
     {
         public EmailBox EmailBox { get; set; }
+        private CancellationTokenSource cancellationToken =
+            new CancellationTokenSource();
 
         public EmailOptionsWindow()
         {
@@ -61,11 +64,16 @@ namespace MailClient
 
                 Task.Factory.StartNew(() =>
                 {
-                    this.Dispatcher.Invoke(() =>
+                    ParallelOptions parallelOptions = new ParallelOptions
                     {
-                        this.Cursor = Cursors.Wait;
+                        CancellationToken = cancellationToken.Token,
+                        MaxDegreeOfParallelism = Environment.ProcessorCount
+                    };
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        Mouse.OverrideCursor = Cursors.Wait;
                     });
-                    
 
                     bool isConnected = emailBox.CheckConnection();
 
@@ -82,9 +90,9 @@ namespace MailClient
                             " Проверьте правильность введённых данных.", "Ошибка",
                             MessageBoxButton.OK, MessageBoxImage.Error);
 
-                    this.Dispatcher.Invoke(() =>
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        this.Cursor = Cursors.Arrow;
+                        Mouse.OverrideCursor = null;
                     });
                 });
             }
@@ -101,6 +109,13 @@ namespace MailClient
                 emailAddressTextBox.Text = EmailBox.EmailAddress;
                 passwordPasswordBox.Password = EmailBox.Password;
             }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (Mouse.OverrideCursor == Cursors.Wait)
+                Mouse.OverrideCursor = null;
+            cancellationToken.Cancel();
         }
     }
 }
