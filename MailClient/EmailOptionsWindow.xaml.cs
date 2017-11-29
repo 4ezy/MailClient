@@ -59,17 +59,34 @@ namespace MailClient
                     return;
                 }
 
-                bool isConnected = emailBox.CheckConnection();
-
-                if (isConnected)
+                Task.Factory.StartNew(() =>
                 {
-                    this.EmailBox = emailBox;
-                    this.Close();
-                }
-                else
-                    MessageBox.Show("При проверке данных была выявлена ошибка." +
-                        " Проверьте правильность введённых данных.", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.Cursor = Cursors.Wait;
+                    });
+                    
+
+                    bool isConnected = emailBox.CheckConnection();
+
+                    if (isConnected)
+                    {
+                        this.EmailBox = emailBox;
+                        this.Dispatcher.Invoke(() =>
+                        {
+                            this.Close();
+                        });
+                    }
+                    else
+                        MessageBox.Show("При проверке данных была выявлена ошибка." +
+                            " Проверьте правильность введённых данных.", "Ошибка",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.Cursor = Cursors.Arrow;
+                    });
+                });
             }
         }
 
