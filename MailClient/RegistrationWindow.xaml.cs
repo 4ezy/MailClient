@@ -45,8 +45,6 @@ namespace MailClient
                     EmailBoxes = new List<EmailBox>()
                 };
 
-                bool userExists = false;
-
                 if (!File.Exists(MainWindow.UserDirectoryPath + user.Login + ".mcd"))
                 {
                     this.RegistredUser = user;

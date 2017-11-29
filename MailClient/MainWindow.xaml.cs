@@ -21,9 +21,12 @@ namespace MailClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        private static readonly string userDirectoryPath = @"C:\Users\" + Environment.UserName + @"\MailClient\";
+        private static readonly string rememberMeDataPath = MainWindow.UserDirectoryPath + "remdata.mcd";
+        public static string UserDirectoryPath => userDirectoryPath;
+        public static string RememberMeDataPath => rememberMeDataPath;
+
         public User CurrentUser { get; set; }
-        public static readonly string UserDirectoryPath = @"C:\Users\" + Environment.UserName + @"\MailClient\";
-        public static readonly string RememberMeDataPath = MainWindow.UserDirectoryPath + "remdata.mcd";
 
         public MainWindow()
         {
@@ -39,11 +42,11 @@ namespace MailClient
 
             if (File.Exists(MainWindow.RememberMeDataPath))
             {
-                byte[] rememberMeData = Encrypter.AesDecryptFile(MainWindow.RememberMeDataPath,
-                    Encrypter.DefaultKey, Encrypter.DefaultIV);
+                byte[] encryptedRememberMeData = File.ReadAllBytes(MainWindow.RememberMeDataPath);
+                byte[] rememberMeData = Encrypter.DecryptWithAesAndRsa(encryptedRememberMeData, Encrypter.DefaultKeyContainerName);
                 string rememberMeLogin = BinarySerializer.Deserialize<string>(rememberMeData);
-                byte[] userData = Encrypter.AesDecryptFile(MainWindow.UserDirectoryPath + rememberMeLogin + ".mcd",
-                    Encrypter.DefaultKey, Encrypter.DefaultIV);
+                byte[] encryptedUserData = File.ReadAllBytes(MainWindow.UserDirectoryPath + rememberMeLogin + ".mcd");
+                byte[] userData = Encrypter.DecryptWithAesAndRsa(encryptedUserData, Encrypter.DefaultKeyContainerName);
                 this.CurrentUser = BinarySerializer.Deserialize<User>(userData);
             }
             else
@@ -71,10 +74,10 @@ namespace MailClient
             
             if (!this.CurrentUser.Equals(optionsWindow.User))
             {
+                File.Delete(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd");
                 this.CurrentUser = optionsWindow.User;
                 byte[] serData = BinarySerializer.Serialize(this.CurrentUser);
-                byte[] encSerData = Encrypter.AesEncrypt(serData,
-                    Encrypter.DefaultKey, Encrypter.DefaultIV);
+                byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
                 File.WriteAllBytes(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd", encSerData);
             }
         }

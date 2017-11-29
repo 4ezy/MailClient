@@ -40,7 +40,8 @@ namespace MailClient
                 emailAddressTextBox.Text == String.Empty ||
                 passwordPasswordBox.Password == String.Empty)
             {
-                MessageBox.Show("Все поля обязательны для заполнения.", "Ошибка");
+                MessageBox.Show("Все поля обязательны для заполнения.", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
@@ -53,7 +54,8 @@ namespace MailClient
                 }
                 catch (FormatException)
                 {
-                    MessageBox.Show("Номер порта должен быть числом.", "Ошибка");
+                    MessageBox.Show("Номер порта должен быть числом.", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
@@ -65,7 +67,9 @@ namespace MailClient
                     this.Close();
                 }
                 else
-                    MessageBox.Show("При проверке данных была выявлена ошибка. Проверьте правильность введённых данных.", "Ошибка");
+                    MessageBox.Show("При проверке данных была выявлена ошибка." +
+                        " Проверьте правильность введённых данных.", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

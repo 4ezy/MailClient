@@ -36,8 +36,7 @@ namespace MailClient
             if (this.AuthUser != null)
             {
                 byte[] serData = BinarySerializer.Serialize(this.AuthUser);
-                byte[] encSerData = Encrypter.AesEncrypt(serData,
-                    Encrypter.DefaultKey, Encrypter.DefaultIV);
+                byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
                 File.WriteAllBytes(MainWindow.UserDirectoryPath + AuthUser.Login + ".mcd", encSerData);
                 this.Close();
             }            
@@ -47,8 +46,9 @@ namespace MailClient
         {
             if (File.Exists(MainWindow.UserDirectoryPath + loginTextBox.Text + ".mcd"))
             {
-                byte[] userData = Encrypter.AesDecryptFile(MainWindow.UserDirectoryPath + loginTextBox.Text + ".mcd",
-                   Encrypter.DefaultKey, Encrypter.DefaultIV);
+                byte[] userEncryptedData = File.ReadAllBytes(MainWindow.UserDirectoryPath +
+                    loginTextBox.Text + ".mcd");
+                byte[] userData = Encrypter.DecryptWithAesAndRsa(userEncryptedData, Encrypter.DefaultKeyContainerName);
                 User user = BinarySerializer.Deserialize<User>(userData);
 
                 if (user.Login == loginTextBox.Text &&
@@ -59,19 +59,20 @@ namespace MailClient
                     if (remeberMeCheckBox.IsChecked == true)
                     {
                         byte[] serData = BinarySerializer.Serialize(user.Login);
-                        byte[] encSerData = Encrypter.AesEncrypt(serData,
-                            Encrypter.DefaultKey, Encrypter.DefaultIV);
+                        byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
                         File.WriteAllBytes(MainWindow.RememberMeDataPath, encSerData);
                     }
 
                     this.Close();
                 }
                 else
-                    MessageBox.Show("Неправильный логин или пароль!", "Ошибка");
+                    MessageBox.Show("Неправильный логин или пароль!", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
-                MessageBox.Show("Такого пользователя не существует!", "Ошибка");
+                MessageBox.Show("Такого пользователя не существует!", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

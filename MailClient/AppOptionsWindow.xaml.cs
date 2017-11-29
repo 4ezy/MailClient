@@ -62,7 +62,8 @@ namespace MailClient
                 }
                 else
                 {
-                    MessageBox.Show("Почтовый ящик с таким адресом уже существует.", "Ошибка");
+                    MessageBox.Show("Почтовый ящик с таким адресом уже существует.", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -78,7 +79,8 @@ namespace MailClient
                 loginTextBox.Text == String.Empty &&
                 passwordBox.Password == String.Empty)
             {
-                MessageBox.Show("Текстовые поля не могут быть пустыми.", "Ошибка");
+                MessageBox.Show("Текстовые поля не могут быть пустыми.", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else
             {
@@ -101,7 +103,8 @@ namespace MailClient
                 }
             }
             else
-                MessageBox.Show("Для изменения требуется выбрать почтовый ящик.", "Ошибка");
+                MessageBox.Show("Для изменения требуется выбрать почтовый ящик.", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private void ChangeEmailButton_Click(object sender, RoutedEventArgs e)
@@ -116,7 +119,8 @@ namespace MailClient
                 emailOptionsWindow.ShowDialog();
             }
             else
-                MessageBox.Show("Для изменения требуется выбрать почтовый ящик.", "Ошибка");
+                MessageBox.Show("Для изменения требуется выбрать почтовый ящик.", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
