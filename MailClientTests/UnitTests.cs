@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MailClient;
 using System.IO;
+using System.Collections.Generic;
 
 namespace MailClientTests
 {
@@ -14,7 +15,7 @@ namespace MailClientTests
             EmailBox emailBox = new EmailBox("aksonov10@gmail.com", "Db64ce15345", "imap.gmail.com",
                 993, "smtp.gmail.com", 465);
 
-            Assert.AreEqual(true, emailBox.CheckConnection());
+            Assert.AreEqual(true, emailBox.Connect());
         }
 
         [TestMethod]
@@ -22,7 +23,7 @@ namespace MailClientTests
         {
             EmailBox emailBox = new EmailBox("aksonov10@gmail.com", "Db64ce15345", "imap.gmail.com",
                 993, "smtp.gmail.com", 465);
-            emailBox.DownloadAllInbox();
+            emailBox.DownloadInboxMessages(0, 5);
             Assert.IsNotNull(emailBox.Inbox);
         }
 
@@ -39,6 +40,13 @@ namespace MailClientTests
             {
                 Assert.AreEqual(data[i], decData[i]);
             }
+        }
+
+        [TestMethod]
+        public void ListCapacityTest()
+        {
+            int[] list = new int[5];
+            list[4] = 4;
         }
     }
 }

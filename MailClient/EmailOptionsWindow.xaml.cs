@@ -70,12 +70,17 @@ namespace MailClient
                         MaxDegreeOfParallelism = Environment.ProcessorCount
                     };
 
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.acceptButton.IsEnabled = false;
+                    });
+
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         Mouse.OverrideCursor = Cursors.Wait;
                     });
 
-                    bool isConnected = emailBox.CheckConnection();
+                    bool isConnected = emailBox.Connect();
 
                     if (isConnected)
                     {
@@ -93,6 +98,11 @@ namespace MailClient
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         Mouse.OverrideCursor = null;
+                    });
+
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.acceptButton.IsEnabled = false;
                     });
                 });
             }

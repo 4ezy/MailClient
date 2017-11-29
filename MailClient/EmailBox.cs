@@ -19,7 +19,32 @@ namespace MailClient
         public int ImapPort { get; set; }
         public string SmtpServerAddress { get; set; }
         public int SmtpPort { get; set; }
-        public List<IMail> Inbox { get; set; }
+
+        [NonSerialized]
+        private Imap imap;
+
+        public Imap Imap
+        {
+            get { return imap; }
+            set { imap = value; }
+        }
+
+        [NonSerialized]
+        private Smtp smtp;
+
+        public Smtp Smtp
+        {
+            get { return smtp; }
+            set { smtp = value; }
+        }
+
+        [NonSerialized]
+        private List<IMail> inbox;
+        public List<IMail> Inbox
+        {
+            get { return inbox; }
+            set { inbox = value; }
+        }
 
         public EmailBox() { }
         public EmailBox(string emailAddress, string password, string imapServerAddress,
@@ -58,58 +83,6 @@ namespace MailClient
             return this.ToString().GetHashCode();
         }
 
-        public bool CheckConnection()
-        {
-            bool isOk = true;
-            using (Imap imap = new Imap())
-            {
-                try
-                {
-                    imap.ConnectSSL(ImapServerAddress, ImapPort);
-                    imap.UseBestLogin(EmailAddress, Password);
-                }
-                catch (Exception)
-                {
-                    return isOk = false;
-                }
-            }
-
-            using (Smtp smtp = new Smtp())
-            {
-                try
-                {
-                    smtp.ConnectSSL(SmtpServerAddress, SmtpPort);
-                    smtp.UseBestLogin(EmailAddress, Password);
-                }
-                catch (Exception)
-                {
-                    return isOk = false;
-                }
-            }
-
-            return isOk;
-        }
-
-        public void DownloadAllInbox()
-        {
-            List<IMail> inbox = new List<IMail>();
-            using (Imap imap = new Imap())
-            {
-                imap.ConnectSSL(ImapServerAddress, ImapPort);
-                imap.UseBestLogin(EmailAddress, Password);
-                imap.SelectInbox();
-                List<long> uidList = imap.Search(Flag.All);
-                Inbox = new List<IMail>();
-
-                for (int i = 0; i < 10; i++)
-                {
-                    byte[] eml = imap.GetMessageByUID(uidList[i]);
-
-                    Inbox.Add(new MailBuilder().CreateFromEml(eml));
-                }
-            }
-        }
-
         public object Clone()
         {
             return new EmailBox
@@ -122,6 +95,50 @@ namespace MailClient
                 SmtpPort = this.SmtpPort,
                 Inbox = this.Inbox
             };
+        }
+
+        public bool Connect()
+        {
+            bool isOk = true;
+
+            try
+            {
+                imap = new Imap();
+                imap.ConnectSSL(ImapServerAddress, ImapPort);
+                imap.UseBestLogin(EmailAddress, Password);
+                imap.SelectInbox();
+                inbox = new List<IMail>();
+            }
+            catch (Exception)
+            {
+                return isOk = false;
+            }
+
+            try
+            {
+                smtp = new Smtp();
+                smtp.ConnectSSL(SmtpServerAddress, SmtpPort);
+                smtp.UseBestLogin(EmailAddress, Password);
+            }
+            catch (Exception)
+            {
+                return isOk = false;
+            }
+
+            return isOk;
+        }
+
+        public void DownloadInboxMessages(int offset, int maxMessagesCount)
+        {
+            imap.SelectInbox();
+            List<long> uidList = imap.Search(Flag.All);
+
+            for (int i = offset; i < uidList.Count && maxMessagesCount > 0; i++)
+            {
+                byte[] eml = imap.GetMessageByUID(uidList[i]);
+                this.Inbox.Add(new MailBuilder().CreateFromEml(eml));
+                maxMessagesCount--;
+            }
         }
     }
 }

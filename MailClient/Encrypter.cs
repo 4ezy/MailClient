@@ -53,6 +53,33 @@ namespace MailClient
             return encryptedData;
         }
 
+        public static byte[] GetSha1Hash(byte[] data)
+        {
+            byte[] signedData;
+            using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
+            {
+                signedData = sha1.ComputeHash(data);
+            }
+            return signedData;
+        }
+
+        public static byte[] AddHashToData(byte[] data)
+        {
+            byte[] dataWithHash;
+            byte[] hash = GetSha1Hash(data);
+            byte[] hashLength = BitConverter.GetBytes(hash.Length);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(data, 0, data.Length);
+                ms.Write(hashLength, 0, hashLength.Length);
+                ms.Write(hash, 0, hash.Length);
+                dataWithHash = ms.ToArray();
+            }
+
+            return dataWithHash;
+        }
+
         public static byte[] DecryptWithAesAndRsa(byte[] data, string keyContainerName)
         {
             CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName };

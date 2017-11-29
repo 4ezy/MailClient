@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Limilabs.Mail;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -65,8 +66,34 @@ namespace MailClient
                     foreach (EmailBox emailBox in this.CurrentUser.EmailBoxes)
                     {
                         this.emailAccountsComboBox.Items.Add(emailBox.EmailAddress);
-                        this.emailAccountsComboBox.SelectedIndex = emailAccountsComboBox.Items.Count != 0
-                            ? this.CurrentUser.SelectedEmailBoxIndex : -1;
+                    }
+
+                    if (this.CurrentUser.EmailBoxes.Count != 0)
+                    {
+                        this.emailAccountsComboBox.SelectedIndex = this.CurrentUser.SelectedEmailBoxIndex;
+                        Task.Factory.StartNew(() =>
+                        {
+                            try
+                            {
+                                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+                            }
+                            catch (Exception)
+                            {
+                                MessageBox.Show("При подключении к серверу произошла ошибка. Пожалуйста, попробуйте позже.",
+                                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                                return;
+                            }
+
+                            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].DownloadInboxMessages(0, 20);
+
+                            foreach (IMail mail in this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Inbox)
+                            {
+                                this.Dispatcher.Invoke(() =>
+                                {
+                                    inboxListBox.Items.Add(mail.Subject);
+                                });
+                            }
+                        });
                     }
                 }
             }
@@ -116,6 +143,16 @@ namespace MailClient
         private void EmailAccountsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             this.CurrentUser.SelectedEmailBoxIndex = this.emailAccountsComboBox.SelectedIndex;
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (this.CurrentUser != null)
+            {
+                byte[] serData = BinarySerializer.Serialize(this.CurrentUser);
+                byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
+                File.WriteAllBytes(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd", encSerData);
+            }
         }
     }
 }
