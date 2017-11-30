@@ -15,7 +15,7 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
-            <MenuItem x:Name="sendMenuItem" Header="Отправить" Click="SendMenuItem_Click"/>
+            <MenuItem x:Name="writeMenuItem" Header="Написать"/>
             <MenuItem x:Name="optionsMenuItem" Header="Учётная запись" Click="OptionsMenuItem_Click"/>
             <MenuItem x:Name="exitMenuItem" Header="Выход" Click="ExitMenuItem_Click"/>
         </Menu>

@@ -37,26 +37,25 @@ namespace MailClient
             {
                 byte[] serData = BinarySerializer.Serialize(this.AuthUser);
                 byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
-                File.WriteAllBytes(MainWindow.UserDirectoryPath + AuthUser.Login + ".mcd", encSerData);
+                File.WriteAllBytes(MainWindow.UserDirectoryPath + this.AuthUser.Login + ".mcd", encSerData);
                 this.Close();
             }            
         }
 
         private void EnterButton_Click(object sender, RoutedEventArgs e)
         {
-            if (File.Exists(MainWindow.UserDirectoryPath + loginTextBox.Text + ".mcd"))
+            if (File.Exists(MainWindow.UserDirectoryPath + this.loginTextBox.Text + ".mcd"))
             {
                 byte[] userEncryptedData = File.ReadAllBytes(MainWindow.UserDirectoryPath +
-                    loginTextBox.Text + ".mcd");
+                    this.loginTextBox.Text + ".mcd");
                 byte[] userData = Encrypter.DecryptWithAesAndRsa(userEncryptedData, Encrypter.DefaultKeyContainerName);
                 User user = BinarySerializer.Deserialize<User>(userData);
 
-                if (user.Login == loginTextBox.Text &&
-                    user.Password == passwordTextBox.Password)
+                if (user.Password == this.passwordTextBox.Password)
                 {
                     this.AuthUser = user;
 
-                    if (remeberMeCheckBox.IsChecked == true)
+                    if (this.remeberMeCheckBox.IsChecked == true)
                     {
                         byte[] serData = BinarySerializer.Serialize(user.Login);
                         byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
@@ -66,7 +65,7 @@ namespace MailClient
                     this.Close();
                 }
                 else
-                    MessageBox.Show("Неправильный логин или пароль!", "Ошибка",
+                    MessageBox.Show("Неправильный пароль!", "Ошибка",
                         MessageBoxButton.OK, MessageBoxImage.Error);
             }
             else

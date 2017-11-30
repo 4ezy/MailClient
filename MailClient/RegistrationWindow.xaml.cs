@@ -24,7 +24,7 @@ namespace MailClient
 
         public RegistrationWindow()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
 
         private void ApplyRegistrationButton_Click(object sender, RoutedEventArgs e)
@@ -42,6 +42,7 @@ namespace MailClient
                     Name = this.nameTextBox.Text,
                     Login = this.loginTextBox.Text,
                     Password = this.passwordTextBox.Password,
+                    SelectedEmailBoxIndex = -1,
                     EmailBoxes = new List<EmailBox>()
                 };
 

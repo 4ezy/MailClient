@@ -27,14 +27,72 @@ namespace MailClient
         public static string UserDirectoryPath => userDirectoryPath;
         public static string RememberMeDataPath => rememberMeDataPath;
 
-        public User CurrentUser { get; set; }
+        public User CurrentUser { get; private set; }
 
         public MainWindow()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.MailClientInitializationData();
+        }
+
+        private void OptionsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            AppOptionsWindow optionsWindow = new AppOptionsWindow(this.CurrentUser)
+            {
+                Owner = this,
+                User = (User)this.CurrentUser.Clone()
+            };
+            optionsWindow.ShowDialog();
+            
+            if (!this.CurrentUser.Equals(optionsWindow.User))
+            {
+                File.Delete(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd");
+                this.CurrentUser = optionsWindow.User;
+                this.emailAccountsComboBox.SelectedIndex = this.CurrentUser.SelectedEmailBoxIndex;
+                this.EncryptAndSerializeCurrentUser();
+            }
+        }
+
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            this.CurrentUser = null;
+
+            if (File.Exists(MainWindow.RememberMeDataPath))
+                File.Delete(MainWindow.RememberMeDataPath);
+
+            this.MailClientInitializationData();
+        }
+
+        private void EmailAccountsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            this.CurrentUser.SelectedEmailBoxIndex = this.emailAccountsComboBox.SelectedIndex;
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (this.CurrentUser != null)
+            {
+                this.EncryptAndSerializeCurrentUser();
+            }
+        }
+
+        private void EmailComboBoxDataInitialization()
+        {
+            this.emailAccountsComboBox.Items.Clear();
+
+            foreach (EmailBox emailBox in this.CurrentUser.EmailBoxes)
+            {
+                this.emailAccountsComboBox.Items.Add(emailBox.EmailAddress);
+            }
+
+            this.emailAccountsComboBox.SelectedIndex = this.CurrentUser.SelectedEmailBoxIndex;
+        }
+
+        private void UserDataReading()
         {
             if (!Directory.Exists(MainWindow.UserDirectoryPath))
             {
@@ -56,103 +114,25 @@ namespace MailClient
                 authWindow.ShowDialog();
                 this.CurrentUser = authWindow.AuthUser;
             }
+        }
+
+        private void EncryptAndSerializeCurrentUser()
+        {
+            byte[] serData = BinarySerializer.Serialize(this.CurrentUser);
+            byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
+            File.WriteAllBytes(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd", encSerData);
+        }
+
+        private void MailClientInitializationData()
+        {
+            this.UserDataReading();
 
             if (this.CurrentUser != null)
             {
-                if (this.CurrentUser.EmailBoxes != null)
-                {
-                    emailAccountsComboBox.Items.Clear();
-
-                    foreach (EmailBox emailBox in this.CurrentUser.EmailBoxes)
-                    {
-                        this.emailAccountsComboBox.Items.Add(emailBox.EmailAddress);
-                    }
-
-                    if (this.CurrentUser.EmailBoxes.Count != 0)
-                    {
-                        this.emailAccountsComboBox.SelectedIndex = this.CurrentUser.SelectedEmailBoxIndex;
-                        Task.Factory.StartNew(() =>
-                        {
-                            try
-                            {
-                                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
-                            }
-                            catch (Exception)
-                            {
-                                MessageBox.Show("При подключении к серверу произошла ошибка. Пожалуйста, попробуйте позже.",
-                                    "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-                                return;
-                            }
-
-                            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].DownloadInboxMessages(0, 20);
-
-                            foreach (IMail mail in this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Inbox)
-                            {
-                                this.Dispatcher.Invoke(() =>
-                                {
-                                    inboxListBox.Items.Add(mail.Subject);
-                                });
-                            }
-                        });
-                    }
-                }
+                this.EmailComboBoxDataInitialization();
             }
             else
                 this.Close();
-        }
-
-        private void OptionsMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            AppOptionsWindow optionsWindow = new AppOptionsWindow()
-            {
-                Owner = this,
-                User = (User)this.CurrentUser.Clone()
-            };
-            optionsWindow.ShowDialog();
-            
-            if (!this.CurrentUser.Equals(optionsWindow.User))
-            {
-                File.Delete(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd");
-                this.CurrentUser = optionsWindow.User;
-                byte[] serData = BinarySerializer.Serialize(this.CurrentUser);
-                byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
-                File.WriteAllBytes(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd", encSerData);
-            }
-        }
-
-        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            this.CurrentUser = null;
-
-            if (File.Exists(MainWindow.RememberMeDataPath))
-                File.Delete(MainWindow.RememberMeDataPath);
-
-            AuthWindow authWindow = new AuthWindow() { Owner = this };
-            authWindow.ShowDialog();
-            this.CurrentUser = authWindow.AuthUser;
-
-            if (this.CurrentUser is null)
-                this.Close();
-        }
-
-        private void SendMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            
-        }
-
-        private void EmailAccountsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            this.CurrentUser.SelectedEmailBoxIndex = this.emailAccountsComboBox.SelectedIndex;
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            if (this.CurrentUser != null)
-            {
-                byte[] serData = BinarySerializer.Serialize(this.CurrentUser);
-                byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
-                File.WriteAllBytes(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd", encSerData);
-            }
         }
     }
 }

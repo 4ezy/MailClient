@@ -6,8 +6,13 @@
         xmlns:local="clr-namespace:MailClient"
         mc:Ignorable="d"
         Title="EmailOptions" Height="350" Width="500" ResizeMode="NoResize"
-        ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="Window_Loaded" Closing="Window_Closing">
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
+        Loaded="Window_Loaded" Closing="Window_Closing">
     <StackPanel Margin="20, 0, 20, 0">
+        <Label Content="Адрес электронной почты"/>
+        <TextBox x:Name="emailAddressTextBox"/>
+        <Label Content="Пароль"/>
+        <PasswordBox x:Name="passwordPasswordBox"/>
         <Label Content="Сервер входящей почты (IMAP)"/>
         <TextBox x:Name="imapServerAddressTextBox"/>
         <Label Content="Порт сервера входящей почты (IMAP)"/>
@@ -16,13 +21,10 @@
         <TextBox x:Name="smtpServerAddressTextBox"/>
         <Label Content="Порт сервера исходящей почты почты (SMTP)"/>
         <TextBox x:Name="smtpPortTextBox"/>
-        <Label Content="Адрес электронной почты"/>
-        <TextBox x:Name="emailAddressTextBox"/>
-        <Label Content="Пароль"/>
-        <PasswordBox x:Name="passwordPasswordBox"/>
         <StackPanel Orientation="Horizontal">
-            <Button x:Name="acceptButton" Content="Подтвердить" Width="100" Margin="0, 20, 0, 0" Click="AcceptButton_Click"/>
-            <Button x:Name="cancelButton" Content="Отмена" Width="100" Margin="10, 20, 0, 0" Click="CancelButton_Click"/>
+            <Button x:Name="acceptButton" Content="Подтвердить" Height="20" Width="100" Margin="0, 20, 0, 0" Click="AcceptButton_Click"/>
+            <Button x:Name="cancelButton" Content="Отмена" Height="20" Width="100" Margin="10, 20, 0, 0" Click="CancelButton_Click"/>
+            <Label x:Name="connectionInfoLabel" Margin="10, 0, 0, -2" VerticalContentAlignment="Bottom"/>
         </StackPanel>
     </StackPanel>
 </Window>

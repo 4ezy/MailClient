@@ -20,13 +20,17 @@ namespace MailClient
     /// </summary>
     public partial class EmailOptionsWindow : Window
     {
-        public EmailBox EmailBox { get; set; }
-        private CancellationTokenSource cancellationToken =
-            new CancellationTokenSource();
+        public EmailBox EmailBox { get; private set; }
+        Thread thread;
 
         public EmailOptionsWindow()
         {
-            InitializeComponent();
+            this.InitializeComponent();
+        }
+
+        public EmailOptionsWindow(EmailBox emailBox) : this()
+        {
+            this.EmailBox = emailBox;
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -36,12 +40,12 @@ namespace MailClient
 
         private void AcceptButton_Click(object sender, RoutedEventArgs e)
         {
-            if (imapServerAddressTextBox.Text == String.Empty ||
-                imapPortTextBox.Text == String.Empty ||
-                smtpServerAddressTextBox.Text == String.Empty ||
-                smtpPortTextBox.Text == String.Empty ||
-                emailAddressTextBox.Text == String.Empty ||
-                passwordPasswordBox.Password == String.Empty)
+            if (this.imapServerAddressTextBox.Text == String.Empty ||
+                this.imapPortTextBox.Text == String.Empty ||
+                this.smtpServerAddressTextBox.Text == String.Empty ||
+                this.smtpPortTextBox.Text == String.Empty ||
+                this.emailAddressTextBox.Text == String.Empty ||
+                this.passwordPasswordBox.Password == String.Empty)
             {
                 MessageBox.Show("Все поля обязательны для заполнения.", "Ошибка",
                     MessageBoxButton.OK, MessageBoxImage.Error);
@@ -51,33 +55,25 @@ namespace MailClient
                 EmailBox emailBox;
                 try
                 {
-                    emailBox = new EmailBox(emailAddressTextBox.Text, passwordPasswordBox.Password,
-                    imapServerAddressTextBox.Text, Convert.ToInt32(imapPortTextBox.Text),
-                    smtpServerAddressTextBox.Text, Convert.ToInt32(smtpPortTextBox.Text));
+                    emailBox = new EmailBox(this.emailAddressTextBox.Text, this.passwordPasswordBox.Password,
+                    this.imapServerAddressTextBox.Text, Convert.ToInt32(this.imapPortTextBox.Text),
+                    this.smtpServerAddressTextBox.Text, Convert.ToInt32(this.smtpPortTextBox.Text));
                 }
                 catch (FormatException)
                 {
-                    MessageBox.Show("Номер порта должен быть числом.", "Ошибка",
+                    MessageBox.Show("Номер порта должен быть целым числом.", "Ошибка",
                         MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                Task.Factory.StartNew(() =>
+                thread = new Thread(() =>
                 {
-                    ParallelOptions parallelOptions = new ParallelOptions
-                    {
-                        CancellationToken = cancellationToken.Token,
-                        MaxDegreeOfParallelism = Environment.ProcessorCount
-                    };
-
                     this.Dispatcher.Invoke(() =>
                     {
+                        this.connectionInfoLabel.Content = "Попытка подключения к серверу...";
+                        this.Cursor = Cursors.Wait;
+                        this.cancelButton.Cursor = Cursors.Arrow;
                         this.acceptButton.IsEnabled = false;
-                    });
-
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        Mouse.OverrideCursor = Cursors.Wait;
                     });
 
                     bool isConnected = emailBox.Connect();
@@ -91,41 +87,42 @@ namespace MailClient
                         });
                     }
                     else
-                        MessageBox.Show("При проверке данных была выявлена ошибка." +
-                            " Проверьте правильность введённых данных.", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-
-                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        Mouse.OverrideCursor = null;
-                    });
+                        MessageBox.Show("Ошибка соединения с сервером." +
+                            " Проверьте правильность введённых данных или интернет соеденение.", "Ошибка",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
 
                     this.Dispatcher.Invoke(() =>
                     {
-                        this.acceptButton.IsEnabled = false;
+                        this.connectionInfoLabel.Content = String.Empty;
+                        this.Cursor = null;
+                        this.cancelButton.Cursor = null;
+                        this.acceptButton.IsEnabled = true;
+                        
                     });
-                });
+                }) { IsBackground = true, Name = "ConnectThread" };
+                thread.Start();
             }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            if (EmailBox != null)
+            if (this.EmailBox != null)
             {
-                imapServerAddressTextBox.Text = EmailBox.ImapServerAddress;
-                imapPortTextBox.Text = Convert.ToString(EmailBox.ImapPort);
-                smtpServerAddressTextBox.Text = EmailBox.SmtpServerAddress;
-                smtpPortTextBox.Text = Convert.ToString(EmailBox.SmtpPort);
-                emailAddressTextBox.Text = EmailBox.EmailAddress;
-                passwordPasswordBox.Password = EmailBox.Password;
+                imapServerAddressTextBox.Text = this.EmailBox.ImapServerAddress;
+                imapPortTextBox.Text = Convert.ToString(this.EmailBox.ImapPort);
+                smtpServerAddressTextBox.Text = this.EmailBox.SmtpServerAddress;
+                smtpPortTextBox.Text = Convert.ToString(this.EmailBox.SmtpPort);
+                emailAddressTextBox.Text = this.EmailBox.EmailAddress;
+                passwordPasswordBox.Password = this.EmailBox.Password;
             }
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (Mouse.OverrideCursor == Cursors.Wait)
-                Mouse.OverrideCursor = null;
-            cancellationToken.Cancel();
+            if (thread != null && thread.IsAlive)
+                thread.Abort();
         }
     }
 }
