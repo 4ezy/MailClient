@@ -40,11 +40,6 @@ namespace MailClient
                     this.User.SelectedEmailBoxIndex = this.User.EmailBoxes.Count > 0 ?
                         this.User.SelectedEmailBoxIndex : -1;
                     this.emailAccountsListBox.Items.Add(emailOptionsWindow.EmailBox.EmailAddress);
-                    //((MainWindow)this.Owner).emailAccountsComboBox.Items.Add(
-                    //    this.User.EmailBoxes[this.User.EmailBoxes.Count - 1].EmailAddress);
-                    //((MainWindow)this.Owner).emailAccountsComboBox.SelectedIndex =
-                    //    ((MainWindow)this.Owner).emailAccountsComboBox.Items.Count == 1 ?
-                    //    0 : ((MainWindow)this.Owner).emailAccountsComboBox.SelectedIndex;
                 }
                 else
                 {
@@ -86,11 +81,7 @@ namespace MailClient
                 {
                     this.User.SelectedEmailBoxIndex = -1;
                     this.User.EmailBoxes.RemoveAt(this.emailAccountsListBox.SelectedIndex);
-
-                    //((MainWindow)this.Owner).emailAccountsComboBox.Items.RemoveAt(emailAccountsListBox.SelectedIndex);
-
                     this.emailAccountsListBox.Items.RemoveAt(this.emailAccountsListBox.SelectedIndex);
-                    //((MainWindow)this.Owner).emailAccountsComboBox.SelectedIndex = this.User.SelectedEmailBoxIndex;
                 }
             }
             else

@@ -52,7 +52,7 @@ namespace MailClient
             {
                 File.Delete(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd");
                 this.CurrentUser = optionsWindow.User;
-                this.emailAccountsComboBox.SelectedIndex = this.CurrentUser.SelectedEmailBoxIndex;
+                this.EmailComboBoxDataRefresh();
                 this.EncryptAndSerializeCurrentUser();
             }
         }
@@ -80,15 +80,17 @@ namespace MailClient
             }
         }
 
-        private void EmailComboBoxDataInitialization()
+        private void EmailComboBoxDataRefresh()
         {
+            int selIndexBuf = this.CurrentUser.SelectedEmailBoxIndex;
             this.emailAccountsComboBox.Items.Clear();
+            this.CurrentUser.SelectedEmailBoxIndex = selIndexBuf;
 
             foreach (EmailBox emailBox in this.CurrentUser.EmailBoxes)
             {
                 this.emailAccountsComboBox.Items.Add(emailBox.EmailAddress);
             }
-
+            
             this.emailAccountsComboBox.SelectedIndex = this.CurrentUser.SelectedEmailBoxIndex;
         }
 
@@ -104,9 +106,15 @@ namespace MailClient
                 byte[] encryptedRememberMeData = File.ReadAllBytes(MainWindow.RememberMeDataPath);
                 byte[] rememberMeData = Encrypter.DecryptWithAesAndRsa(encryptedRememberMeData, Encrypter.DefaultKeyContainerName);
                 string rememberMeLogin = BinarySerializer.Deserialize<string>(rememberMeData);
-                byte[] encryptedUserData = File.ReadAllBytes(MainWindow.UserDirectoryPath + rememberMeLogin + ".mcd");
-                byte[] userData = Encrypter.DecryptWithAesAndRsa(encryptedUserData, Encrypter.DefaultKeyContainerName);
-                this.CurrentUser = BinarySerializer.Deserialize<User>(userData);
+
+                if (File.Exists(MainWindow.UserDirectoryPath + rememberMeLogin + ".mcd"))
+                {
+                    byte[] encryptedUserData = File.ReadAllBytes(MainWindow.UserDirectoryPath + rememberMeLogin + ".mcd");
+                    byte[] userData = Encrypter.DecryptWithAesAndRsa(encryptedUserData, Encrypter.DefaultKeyContainerName);
+                    this.CurrentUser = BinarySerializer.Deserialize<User>(userData);
+                }
+                else
+                    File.Delete(MainWindow.RememberMeDataPath);
             }
             else
             {
@@ -129,7 +137,7 @@ namespace MailClient
 
             if (this.CurrentUser != null)
             {
-                this.EmailComboBoxDataInitialization();
+                this.EmailComboBoxDataRefresh();
             }
             else
                 this.Close();
