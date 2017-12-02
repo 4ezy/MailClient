@@ -103,11 +103,11 @@ namespace MailClient
 
             try
             {
-                imap = new Imap();
-                imap.ConnectSSL(ImapServerAddress, ImapPort);
-                imap.UseBestLogin(EmailAddress, Password);
-                imap.SelectInbox();
-                inbox = new List<IMail>();
+                this.imap = new Imap();
+                this.imap.ConnectSSL(ImapServerAddress, ImapPort);
+                this.imap.UseBestLogin(EmailAddress, Password);
+                this.imap.SelectInbox();
+                this.inbox = new List<IMail>();
             }
             catch (Exception)
             {
@@ -116,9 +116,9 @@ namespace MailClient
 
             try
             {
-                smtp = new Smtp();
-                smtp.ConnectSSL(SmtpServerAddress, SmtpPort);
-                smtp.UseBestLogin(EmailAddress, Password);
+                this.smtp = new Smtp();
+                this.smtp.ConnectSSL(SmtpServerAddress, SmtpPort);
+                this.smtp.UseBestLogin(EmailAddress, Password);
             }
             catch (Exception)
             {
@@ -128,17 +128,48 @@ namespace MailClient
             return isOk;
         }
 
-        public void DownloadInboxMessages(int offset, int maxMessagesCount)
+        public void DownloadInboxMessages(int offset, int maxMessagesCount, MessagesType messagesType,
+            MessagesBeginningFrom beginningFrom, Action<string> subjectAddAction)
         {
-            imap.SelectInbox();
+            if (messagesType == MessagesType.Inbox)
+                imap.SelectInbox();
+
             List<long> uidList = imap.Search(Flag.All);
+            this.Inbox = new List<IMail>();
+
+            if (beginningFrom == MessagesBeginningFrom.New)
+                uidList.Reverse();
 
             for (int i = offset; i < uidList.Count && maxMessagesCount > 0; i++)
             {
-                byte[] eml = imap.GetMessageByUID(uidList[i]);
-                this.Inbox.Add(new MailBuilder().CreateFromEml(eml));
+                byte[] eml;
+                try
+                {
+                    eml = imap.GetMessageByUID(uidList[i]);
+                }
+                catch (ServerException)
+                {
+                    throw;
+                }
+                IMail message = new MailBuilder().CreateFromEml(eml);
+                this.Inbox.Add(message);
+                subjectAddAction.Invoke(message.Subject);
                 maxMessagesCount--;
             }
         }
     }
+}
+
+public enum MessagesBeginningFrom
+{
+    Old,
+    New
+}
+
+public enum MessagesType
+{
+    Inbox,
+    Sent,
+    Drafts,
+    Basket
 }

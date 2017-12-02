@@ -23,7 +23,7 @@
                   HorizontalAlignment="Right" Margin="5" SelectionChanged="EmailAccountsComboBox_SelectionChanged" />
         <TabControl Grid.Row="2" FontSize="14" Margin="5, 0, 5, 5">
             <TabItem Header="Входящие">
-                <ListBox x:Name="inboxListBox" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                <ListBox x:Name="inboxListBox" ScrollViewer.VerticalScrollBarVisibility="Auto" FontSize="18"/>
             </TabItem>
             <TabItem Header="Отправленные"></TabItem>
             <TabItem Header="Черновики"></TabItem>

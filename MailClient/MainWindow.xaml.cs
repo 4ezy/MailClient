@@ -1,9 +1,11 @@
-﻿using Limilabs.Mail;
+﻿using Limilabs.Client;
+using Limilabs.Mail;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,6 +30,9 @@ namespace MailClient
         public static string RememberMeDataPath => rememberMeDataPath;
 
         public User CurrentUser { get; private set; }
+        private int messagesOffset = 0;
+        private int maxMessages = 20;
+        private Thread inboxThread;
 
         public MainWindow()
         {
@@ -37,6 +42,14 @@ namespace MailClient
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.MailClientInitializationData();
+            Mouse.OverrideCursor = Cursors.Wait;
+            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+            Mouse.OverrideCursor = null;
+            if (this.CurrentUser.SelectedEmailBoxIndex != -1)
+            {
+                this.messagesOffset = 0;
+                this.DownloadMessagesToClient();
+            }
         }
 
         private void OptionsMenuItem_Click(object sender, RoutedEventArgs e)
@@ -59,17 +72,29 @@ namespace MailClient
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (this.inboxThread != null && this.inboxThread.IsAlive)
+                inboxThread.Abort();
+
+            this.ClearUIData();
             this.CurrentUser = null;
 
             if (File.Exists(MainWindow.RememberMeDataPath))
                 File.Delete(MainWindow.RememberMeDataPath);
 
             this.MailClientInitializationData();
+            Mouse.OverrideCursor = Cursors.Wait;
+            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+            Mouse.OverrideCursor = null;
         }
 
         private void EmailAccountsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             this.CurrentUser.SelectedEmailBoxIndex = this.emailAccountsComboBox.SelectedIndex;
+            if (this.CurrentUser.SelectedEmailBoxIndex != -1)
+            {
+                this.messagesOffset = 0;
+                this.DownloadMessagesToClient();
+            }
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -141,6 +166,56 @@ namespace MailClient
             }
             else
                 this.Close();
+        }
+
+        private void DownloadMessagesToClient()
+        {
+            if (inboxThread != null && inboxThread.IsAlive)
+                inboxThread.Abort();
+
+            if (this.CurrentUser.EmailBoxes.Count != 0)
+            {
+                inboxThread = new Thread(() =>
+                {
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.Cursor = Cursors.AppStarting;
+                        this.inboxListBox.Items.Clear();
+                    });
+
+                    try
+                    {
+                        this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].DownloadInboxMessages(
+                            this.messagesOffset, this.maxMessages, MessagesType.Inbox, MessagesBeginningFrom.New,
+                            ((string subject) =>
+                            {
+                                this.Dispatcher.Invoke(() =>
+                                {
+                                    this.inboxListBox.Items.Add(subject);
+                                });
+                            }));
+                    }
+                    catch (ServerException)
+                    {
+                        //if (inboxThread.IsAlive)
+                        //    MessageBox.Show("Ошибка скачивания сообщений. Пожалуйста, попробуйте позже.",
+                        //        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.Cursor = null;
+                    });
+                }) { IsBackground = true, Name = "EmailDownloadThread" };
+
+                inboxThread.Start();
+            }
+        }
+
+        private void ClearUIData()
+        {
+            this.inboxListBox.Items.Clear();
+            this.emailAccountsComboBox.Items.Clear();
         }
     }
 }
