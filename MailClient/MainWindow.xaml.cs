@@ -1,4 +1,5 @@
 ﻿using Limilabs.Client;
+using Limilabs.Client.IMAP;
 using Limilabs.Mail;
 using System;
 using System.Collections.Generic;
@@ -31,7 +32,7 @@ namespace MailClient
 
         public User CurrentUser { get; private set; }
         private int messagesOffset = 0;
-        private int maxMessages = 20;
+        private int maxMessages = 22;
         private Thread inboxThread;
 
         public MainWindow()
@@ -197,9 +198,8 @@ namespace MailClient
                     }
                     catch (ServerException)
                     {
-                        //if (inboxThread.IsAlive)
-                        //    MessageBox.Show("Ошибка скачивания сообщений. Пожалуйста, попробуйте позже.",
-                        //        "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show("Ошибка скачивания сообщений. Пожалуйста, попробуйте позже.",
+                                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
 
                     this.Dispatcher.Invoke(() =>
@@ -216,6 +216,72 @@ namespace MailClient
         {
             this.inboxListBox.Items.Clear();
             this.emailAccountsComboBox.Items.Clear();
+        }
+
+        private void ToStartButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.messagesOffset = 0;
+
+            this.toStartButton.IsEnabled = false;
+            this.backButton.IsEnabled = false;
+            this.nextButton.IsEnabled = true;
+            this.toEndButton.IsEnabled = true;
+
+            this.DownloadMessagesToClient();
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.messagesOffset > this.maxMessages)
+            {
+                this.toStartButton.IsEnabled = true;
+                this.backButton.IsEnabled = true;
+            }
+            else
+            {
+                this.toStartButton.IsEnabled = false;
+                this.backButton.IsEnabled = false;
+            }
+
+            this.nextButton.IsEnabled = true;
+            this.toEndButton.IsEnabled = true;
+            this.messagesOffset -= this.maxMessages;
+            this.DownloadMessagesToClient();
+        }
+
+        private void NextButton_Click(object sender, RoutedEventArgs e)
+        {
+            int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
+
+            if (this.messagesOffset < messageCount)
+            {
+                this.nextButton.IsEnabled = true;
+                this.toEndButton.IsEnabled = true;
+            }
+            else
+            {
+                this.nextButton.IsEnabled = false;
+                this.toEndButton.IsEnabled = false;
+            }
+
+            this.toStartButton.IsEnabled = true;
+            this.backButton.IsEnabled = true;
+            this.messagesOffset += this.maxMessages;
+            this.DownloadMessagesToClient();
+        }
+
+        private void ToEndButton_Click(object sender, RoutedEventArgs e)
+        {
+            int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
+
+            this.messagesOffset = messageCount / this.maxMessages * this.maxMessages;
+
+            this.toStartButton.IsEnabled = true;
+            this.backButton.IsEnabled = true;
+            this.nextButton.IsEnabled = false;
+            this.toEndButton.IsEnabled = false;
+
+            DownloadMessagesToClient();
         }
     }
 }

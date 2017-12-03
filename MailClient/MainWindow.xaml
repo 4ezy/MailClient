@@ -13,6 +13,7 @@
             <RowDefinition Height="20"/>
             <RowDefinition Height="35"/>
             <RowDefinition/>
+            <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem x:Name="writeMenuItem" Header="Написать"/>
@@ -21,13 +22,19 @@
         </Menu>
         <ComboBox x:Name="emailAccountsComboBox" Grid.Row="1" Width="150"
                   HorizontalAlignment="Right" Margin="5" SelectionChanged="EmailAccountsComboBox_SelectionChanged" />
-        <TabControl Grid.Row="2" FontSize="14" Margin="5, 0, 5, 5">
+        <TabControl Grid.Row="2" FontSize="14" Margin="5, 0, 5, 0">
             <TabItem Header="Входящие">
-                <ListBox x:Name="inboxListBox" ScrollViewer.VerticalScrollBarVisibility="Auto" FontSize="18"/>
+                <ListBox x:Name="inboxListBox" ScrollViewer.VerticalScrollBarVisibility="Auto" FontSize="17"/>
             </TabItem>
             <TabItem Header="Отправленные"></TabItem>
             <TabItem Header="Черновики"></TabItem>
             <TabItem Header="Корзина"></TabItem>
         </TabControl>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="5">
+            <Button x:Name="toStartButton" Content="В начало" Width="100" Click="ToStartButton_Click" IsEnabled="False"/>
+            <Button x:Name="backButton" Content="Назад" Margin="10, 0, 0, 0" Width="100" Click="BackButton_Click" IsEnabled="False"/>
+            <Button x:Name="nextButton" Content="Вперёд" Margin="10, 0, 0, 0" Width="100" Click="NextButton_Click"/>
+            <Button x:Name="toEndButton" Content="В конец" Margin="10, 0, 0, 0" Width="100" Click="ToEndButton_Click"/>
+        </StackPanel>
     </Grid>
 </Window>
