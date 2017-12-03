@@ -34,6 +34,7 @@ namespace MailClient
         private int messagesOffset = 0;
         private int maxMessages = 22;
         private Thread inboxThread;
+        private MessagesType messagesType = MessagesType.Inbox;
 
         public MainWindow()
         {
@@ -49,7 +50,7 @@ namespace MailClient
             if (this.CurrentUser.SelectedEmailBoxIndex != -1)
             {
                 this.messagesOffset = 0;
-                this.DownloadMessagesToClient();
+                this.DownloadMessagesToClient(messagesType);
             }
         }
 
@@ -94,7 +95,7 @@ namespace MailClient
             if (this.CurrentUser.SelectedEmailBoxIndex != -1)
             {
                 this.messagesOffset = 0;
-                this.DownloadMessagesToClient();
+                this.DownloadMessagesToClient(messagesType);
             }
         }
 
@@ -169,7 +170,7 @@ namespace MailClient
                 this.Close();
         }
 
-        private void DownloadMessagesToClient()
+        private void DownloadMessagesToClient(MessagesType messagesType)
         {
             if (inboxThread != null && inboxThread.IsAlive)
                 inboxThread.Abort();
@@ -181,18 +182,24 @@ namespace MailClient
                     this.Dispatcher.Invoke(() =>
                     {
                         this.Cursor = Cursors.AppStarting;
-                        this.inboxListBox.Items.Clear();
+                        if (messagesType == MessagesType.Inbox)
+                            this.inboxListBox.Items.Clear();
+                        else if (messagesType == MessagesType.Sent)
+                            this.sentListBox.Items.Clear();
                     });
 
                     try
                     {
                         this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].DownloadInboxMessages(
-                            this.messagesOffset, this.maxMessages, MessagesType.Inbox, MessagesBeginningFrom.New,
+                            this.messagesOffset, this.maxMessages, messagesType, MessagesBeginningFrom.New,
                             ((string subject) =>
                             {
                                 this.Dispatcher.Invoke(() =>
                                 {
-                                    this.inboxListBox.Items.Add(subject);
+                                    if (messagesType == MessagesType.Inbox)
+                                        this.inboxListBox.Items.Add(subject);
+                                    else if (messagesType == MessagesType.Sent)
+                                        this.sentListBox.Items.Add(subject);
                                 });
                             }));
                     }
@@ -227,7 +234,7 @@ namespace MailClient
             this.nextButton.IsEnabled = true;
             this.toEndButton.IsEnabled = true;
 
-            this.DownloadMessagesToClient();
+            this.DownloadMessagesToClient(messagesType);
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
@@ -246,11 +253,17 @@ namespace MailClient
             this.nextButton.IsEnabled = true;
             this.toEndButton.IsEnabled = true;
             this.messagesOffset -= this.maxMessages;
-            this.DownloadMessagesToClient();
+            this.DownloadMessagesToClient(messagesType);
         }
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
+            if (inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+            }
+                
+
             int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
 
             if (this.messagesOffset < messageCount)
@@ -267,7 +280,7 @@ namespace MailClient
             this.toStartButton.IsEnabled = true;
             this.backButton.IsEnabled = true;
             this.messagesOffset += this.maxMessages;
-            this.DownloadMessagesToClient();
+            this.DownloadMessagesToClient(messagesType);
         }
 
         private void ToEndButton_Click(object sender, RoutedEventArgs e)
@@ -281,7 +294,40 @@ namespace MailClient
             this.nextButton.IsEnabled = false;
             this.toEndButton.IsEnabled = false;
 
-            DownloadMessagesToClient();
+            DownloadMessagesToClient(messagesType);
+        }
+
+        private void Changed_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (this.CurrentUser != null)
+            {
+                switch (changed.SelectedIndex)
+                {
+                    case 0:
+                        messagesType = MessagesType.Inbox;
+                        break;
+                    case 1:
+                        messagesType = MessagesType.Sent;
+                        break;
+                    case 2:
+                        messagesType = MessagesType.Drafts;
+                        break;
+                    case 3:
+                        messagesType = MessagesType.Basket;
+                        break;
+                    default:
+                        break;
+                }
+
+                this.messagesOffset = 0;
+
+                this.toStartButton.IsEnabled = false;
+                this.backButton.IsEnabled = false;
+                this.nextButton.IsEnabled = true;
+                this.toEndButton.IsEnabled = true;
+
+                this.DownloadMessagesToClient(messagesType);
+            }
         }
     }
 }

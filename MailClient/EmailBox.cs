@@ -131,8 +131,30 @@ namespace MailClient
         public void DownloadInboxMessages(int offset, int maxMessagesCount, MessagesType messagesType,
             MessagesBeginningFrom beginningFrom, Action<string> subjectAddAction)
         {
+            List<FolderInfo> list = imap.GetFolders();
+            FolderInfo folder = null;
+
             if (messagesType == MessagesType.Inbox)
-                imap.SelectInbox();
+            {
+                folder = (from f in list
+                           where f.ShortName == "Входящие"
+                           select f).First();
+            }
+            else if (messagesType == MessagesType.Sent)
+            {
+                folder = (from f in list
+                          where f.ShortName == "Отправленные"
+                          select f).First();
+            }
+
+            try
+            {
+                imap.Select(folder);
+            }
+            catch (NullReferenceException)
+            {
+                return;
+            }
 
             List<long> uidList = imap.Search(Flag.All);
             this.Inbox = new List<IMail>();

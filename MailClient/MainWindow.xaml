@@ -22,11 +22,13 @@
         </Menu>
         <ComboBox x:Name="emailAccountsComboBox" Grid.Row="1" Width="150"
                   HorizontalAlignment="Right" Margin="5" SelectionChanged="EmailAccountsComboBox_SelectionChanged" />
-        <TabControl Grid.Row="2" FontSize="14" Margin="5, 0, 5, 0">
+        <TabControl x:Name="changed" Grid.Row="2" FontSize="14" Margin="5, 0, 5, 0" SelectionChanged="Changed_SelectionChanged">
             <TabItem Header="Входящие">
                 <ListBox x:Name="inboxListBox" ScrollViewer.VerticalScrollBarVisibility="Auto" FontSize="17"/>
             </TabItem>
-            <TabItem Header="Отправленные"></TabItem>
+            <TabItem Header="Отправленные">
+                <ListBox x:Name="sentListBox" ScrollViewer.VerticalScrollBarVisibility="Auto" FontSize="17"/>
+            </TabItem>
             <TabItem Header="Черновики"></TabItem>
             <TabItem Header="Корзина"></TabItem>
         </TabControl>
