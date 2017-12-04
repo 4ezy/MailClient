@@ -32,7 +32,7 @@ namespace MailClient
 
         public User CurrentUser { get; private set; }
         private int messagesOffset = 0;
-        private int maxMessages = 22;
+        private int maxMessages = 20;
         private Thread inboxThread;
         private MessagesType messagesType = MessagesType.Inbox;
 
@@ -56,6 +56,12 @@ namespace MailClient
 
         private void OptionsMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (inboxThread != null && inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
             AppOptionsWindow optionsWindow = new AppOptionsWindow(this.CurrentUser)
             {
                 Owner = this,
@@ -74,8 +80,11 @@ namespace MailClient
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (this.inboxThread != null && this.inboxThread.IsAlive)
+            if (inboxThread != null && inboxThread.IsAlive)
+            {
                 inboxThread.Abort();
+                inboxThread.Join();
+            }
 
             this.ClearUIData();
             this.CurrentUser = null;
@@ -91,6 +100,12 @@ namespace MailClient
 
         private void EmailAccountsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (inboxThread != null && inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
             this.CurrentUser.SelectedEmailBoxIndex = this.emailAccountsComboBox.SelectedIndex;
             if (this.CurrentUser.SelectedEmailBoxIndex != -1)
             {
@@ -236,7 +251,7 @@ namespace MailClient
 
         private void ToStartButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread.IsAlive)
+            if (inboxThread != null && inboxThread.IsAlive)
             {
                 inboxThread.Abort();
                 inboxThread.Join();
@@ -254,7 +269,7 @@ namespace MailClient
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread.IsAlive)
+            if (inboxThread != null && inboxThread.IsAlive)
             {
                 inboxThread.Abort();
                 inboxThread.Join();
@@ -279,7 +294,7 @@ namespace MailClient
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread.IsAlive)
+            if (inboxThread != null && inboxThread.IsAlive)
             {
                 inboxThread.Abort();
                 inboxThread.Join();
@@ -308,7 +323,7 @@ namespace MailClient
 
         private void ToEndButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread.IsAlive)
+            if (inboxThread != null && inboxThread.IsAlive)
             {
                 inboxThread.Abort();
                 inboxThread.Join();
@@ -328,6 +343,12 @@ namespace MailClient
 
         private void Changed_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (inboxThread != null && inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
             if (this.CurrentUser != null)
             {
                 switch (changed.SelectedIndex)
