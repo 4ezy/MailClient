@@ -186,12 +186,17 @@ namespace MailClient
                             this.inboxListBox.Items.Clear();
                         else if (messagesType == MessagesType.Sent)
                             this.sentListBox.Items.Clear();
+                        else if (messagesType == MessagesType.Drafts)
+                            this.draftsListBox.Items.Clear();
+                        else if (messagesType == MessagesType.Basket)
+                            this.basketListBox.Items.Clear();
                     });
 
                     try
                     {
-                        this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].DownloadInboxMessages(
-                            this.messagesOffset, this.maxMessages, messagesType, MessagesBeginningFrom.New,
+                        this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
+                        this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].DownloadEnvelopes(
+                            this.messagesOffset, this.maxMessages, MessagesBeginningFrom.New,
                             ((string subject) =>
                             {
                                 this.Dispatcher.Invoke(() =>
@@ -200,6 +205,10 @@ namespace MailClient
                                         this.inboxListBox.Items.Add(subject);
                                     else if (messagesType == MessagesType.Sent)
                                         this.sentListBox.Items.Add(subject);
+                                    else if (messagesType == MessagesType.Drafts)
+                                        this.draftsListBox.Items.Add(subject);
+                                    else if (messagesType == MessagesType.Basket)
+                                        this.basketListBox.Items.Add(subject);
                                 });
                             }));
                     }
@@ -258,15 +267,11 @@ namespace MailClient
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread.IsAlive)
-            {
-                inboxThread.Abort();
-            }
-                
-
             int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
+            int messageBorder = messageCount / this.maxMessages * this.maxMessages;
+            this.messagesOffset += this.maxMessages;
 
-            if (this.messagesOffset < messageCount)
+            if (this.messagesOffset < messageBorder)
             {
                 this.nextButton.IsEnabled = true;
                 this.toEndButton.IsEnabled = true;
@@ -279,7 +284,7 @@ namespace MailClient
 
             this.toStartButton.IsEnabled = true;
             this.backButton.IsEnabled = true;
-            this.messagesOffset += this.maxMessages;
+            
             this.DownloadMessagesToClient(messagesType);
         }
 
@@ -319,12 +324,25 @@ namespace MailClient
                         break;
                 }
 
-                this.messagesOffset = 0;
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
+                int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
 
-                this.toStartButton.IsEnabled = false;
-                this.backButton.IsEnabled = false;
-                this.nextButton.IsEnabled = true;
-                this.toEndButton.IsEnabled = true;
+                if (messageCount < this.maxMessages)
+                {
+                    this.toStartButton.IsEnabled = false;
+                    this.backButton.IsEnabled = false;
+                    this.nextButton.IsEnabled = false;
+                    this.toEndButton.IsEnabled = false;
+                }
+                else
+                {
+                    this.toStartButton.IsEnabled = false;
+                    this.backButton.IsEnabled = false;
+                    this.nextButton.IsEnabled = true;
+                    this.toEndButton.IsEnabled = true;
+                }
+
+                this.messagesOffset = 0;
 
                 this.DownloadMessagesToClient(messagesType);
             }

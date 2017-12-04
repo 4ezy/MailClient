@@ -29,8 +29,12 @@
             <TabItem Header="Отправленные">
                 <ListBox x:Name="sentListBox" ScrollViewer.VerticalScrollBarVisibility="Auto" FontSize="17"/>
             </TabItem>
-            <TabItem Header="Черновики"></TabItem>
-            <TabItem Header="Корзина"></TabItem>
+            <TabItem Header="Черновики">
+                <ListBox x:Name="draftsListBox" ScrollViewer.VerticalScrollBarVisibility="Auto" FontSize="17"/>
+            </TabItem>
+            <TabItem Header="Корзина">
+                <ListBox x:Name="basketListBox" ScrollViewer.VerticalScrollBarVisibility="Auto" FontSize="17"/>
+            </TabItem>
         </TabControl>
         <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="5">
             <Button x:Name="toStartButton" Content="В начало" Width="100" Click="ToStartButton_Click" IsEnabled="False"/>

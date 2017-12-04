@@ -39,8 +39,8 @@ namespace MailClient
         }
 
         [NonSerialized]
-        private List<IMail> inbox;
-        public List<IMail> Inbox
+        private List<Envelope> inbox;
+        public List<Envelope> Inbox
         {
             get { return inbox; }
             set { inbox = value; }
@@ -107,7 +107,7 @@ namespace MailClient
                 this.imap.ConnectSSL(ImapServerAddress, ImapPort);
                 this.imap.UseBestLogin(EmailAddress, Password);
                 this.imap.SelectInbox();
-                this.inbox = new List<IMail>();
+                this.inbox = new List<Envelope>();
             }
             catch (Exception)
             {
@@ -128,8 +128,7 @@ namespace MailClient
             return isOk;
         }
 
-        public void DownloadInboxMessages(int offset, int maxMessagesCount, MessagesType messagesType,
-            MessagesBeginningFrom beginningFrom, Action<string> subjectAddAction)
+        public void ChangeFolder(MessagesType messagesType)
         {
             List<FolderInfo> list = imap.GetFolders();
             FolderInfo folder = null;
@@ -137,13 +136,25 @@ namespace MailClient
             if (messagesType == MessagesType.Inbox)
             {
                 folder = (from f in list
-                           where f.ShortName == "Входящие"
-                           select f).First();
+                          where f.ShortName == "Входящие"
+                          select f).First();
             }
             else if (messagesType == MessagesType.Sent)
             {
                 folder = (from f in list
                           where f.ShortName == "Отправленные"
+                          select f).First();
+            }
+            else if (messagesType == MessagesType.Drafts)
+            {
+                folder = (from f in list
+                          where f.ShortName == "Черновики"
+                          select f).First();
+            }
+            else if (messagesType == MessagesType.Basket)
+            {
+                folder = (from f in list
+                          where f.ShortName == "Корзина"
                           select f).First();
             }
 
@@ -155,27 +166,31 @@ namespace MailClient
             {
                 return;
             }
+        }
 
+        public void DownloadEnvelopes(int offset, int maxMessagesCount, 
+            MessagesBeginningFrom beginningFrom, Action<string> subjectAddAction)
+        {
             List<long> uidList = imap.Search(Flag.All);
-            this.Inbox = new List<IMail>();
+            this.Inbox = new List<Envelope>();
 
             if (beginningFrom == MessagesBeginningFrom.New)
                 uidList.Reverse();
 
             for (int i = offset; i < uidList.Count && maxMessagesCount > 0; i++)
             {
-                byte[] eml;
+                Envelope envelope;
                 try
                 {
-                    eml = imap.GetMessageByUID(uidList[i]);
+                    envelope = imap.GetEnvelopeByUID(uidList[i]);
                 }
                 catch (ServerException)
                 {
                     throw;
                 }
-                IMail message = new MailBuilder().CreateFromEml(eml);
-                this.Inbox.Add(message);
-                subjectAddAction.Invoke(message.Subject);
+
+                this.Inbox.Add(envelope);
+                subjectAddAction.Invoke(envelope.Subject);
                 maxMessagesCount--;
             }
         }
