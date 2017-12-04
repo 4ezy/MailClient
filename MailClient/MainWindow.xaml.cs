@@ -214,8 +214,8 @@ namespace MailClient
                     }
                     catch (ServerException)
                     {
-                        MessageBox.Show("Ошибка скачивания сообщений. Пожалуйста, попробуйте позже.",
-                                "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                        this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+                        this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
                     }
 
                     this.Dispatcher.Invoke(() =>
@@ -236,6 +236,12 @@ namespace MailClient
 
         private void ToStartButton_Click(object sender, RoutedEventArgs e)
         {
+            if (inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
             this.messagesOffset = 0;
 
             this.toStartButton.IsEnabled = false;
@@ -248,6 +254,12 @@ namespace MailClient
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
+            if (inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
             if (this.messagesOffset > this.maxMessages)
             {
                 this.toStartButton.IsEnabled = true;
@@ -267,6 +279,12 @@ namespace MailClient
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
+            if (inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
             int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
             int messageBorder = messageCount / this.maxMessages * this.maxMessages;
             this.messagesOffset += this.maxMessages;
@@ -290,6 +308,12 @@ namespace MailClient
 
         private void ToEndButton_Click(object sender, RoutedEventArgs e)
         {
+            if (inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
             int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
 
             this.messagesOffset = messageCount / this.maxMessages * this.maxMessages;

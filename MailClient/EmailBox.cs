@@ -179,7 +179,7 @@ namespace MailClient
 
             for (int i = offset; i < uidList.Count && maxMessagesCount > 0; i++)
             {
-                Envelope envelope;
+                Envelope envelope = null;
                 try
                 {
                     envelope = imap.GetEnvelopeByUID(uidList[i]);
