@@ -44,12 +44,15 @@ namespace MailClient
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.MailClientInitializationData();
-            Mouse.OverrideCursor = Cursors.Wait;
-            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
-            Mouse.OverrideCursor = null;
+
             if (this.CurrentUser.SelectedEmailBoxIndex != -1)
             {
+                Mouse.OverrideCursor = Cursors.Wait;
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+                Mouse.OverrideCursor = null;
                 this.messagesOffset = 0;
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
                 this.DownloadMessagesToClient(messagesType);
             }
         }
@@ -110,6 +113,8 @@ namespace MailClient
             if (this.CurrentUser.SelectedEmailBoxIndex != -1)
             {
                 this.messagesOffset = 0;
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
                 this.DownloadMessagesToClient(messagesType);
             }
         }
@@ -369,27 +374,31 @@ namespace MailClient
                         break;
                 }
 
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
-                int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
-
-                if (messageCount < this.maxMessages)
+                if (this.CurrentUser.SelectedEmailBoxIndex != -1)
                 {
-                    this.toStartButton.IsEnabled = false;
-                    this.backButton.IsEnabled = false;
-                    this.nextButton.IsEnabled = false;
-                    this.toEndButton.IsEnabled = false;
-                }
-                else
-                {
-                    this.toStartButton.IsEnabled = false;
-                    this.backButton.IsEnabled = false;
-                    this.nextButton.IsEnabled = true;
-                    this.toEndButton.IsEnabled = true;
-                }
+                    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
+                    int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
 
-                this.messagesOffset = 0;
+                    if (messageCount < this.maxMessages)
+                    {
+                        this.toStartButton.IsEnabled = false;
+                        this.backButton.IsEnabled = false;
+                        this.nextButton.IsEnabled = false;
+                        this.toEndButton.IsEnabled = false;
+                    }
+                    else
+                    {
+                        this.toStartButton.IsEnabled = false;
+                        this.backButton.IsEnabled = false;
+                        this.nextButton.IsEnabled = true;
+                        this.toEndButton.IsEnabled = true;
+                    }
 
-                this.DownloadMessagesToClient(messagesType);
+                    this.messagesOffset = 0;
+                    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(this.messagesType);
+                    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+                    this.DownloadMessagesToClient(messagesType);
+                }
             }
         }
     }

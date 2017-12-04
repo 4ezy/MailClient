@@ -136,7 +136,7 @@ namespace MailClient
             if (messagesType == MessagesType.Inbox)
             {
                 folder = (from f in list
-                          where f.ShortName == "Входящие"
+                          where f.ShortName == "Входящие" || f.ShortName == "INBOX"
                           select f).First();
             }
             else if (messagesType == MessagesType.Sent)
@@ -154,7 +154,7 @@ namespace MailClient
             else if (messagesType == MessagesType.Basket)
             {
                 folder = (from f in list
-                          where f.ShortName == "Корзина"
+                          where f.ShortName == "Корзина" || f.ShortName == "Удаленные"
                           select f).First();
             }
 
