@@ -36,7 +36,7 @@ namespace MailClient
         private Thread inboxThread;
         private MessagesType messagesType = MessagesType.Inbox;
         private int lastSelectedTabItemIdex = -1;
-
+        private List<long> uids;
         public MainWindow()
         {
             this.InitializeComponent();
@@ -66,11 +66,17 @@ namespace MailClient
                 inboxThread.Join();
             }
 
-            AppOptionsWindow optionsWindow = new AppOptionsWindow(this.CurrentUser)
+            AppOptionsWindow optionsWindow = new AppOptionsWindow(
+                (User)this.CurrentUser.Clone())
             {
-                Owner = this,
-                User = (User)this.CurrentUser.Clone()
+                Owner = this
             };
+
+            //AppOptionsWindow optionsWindow = new AppOptionsWindow(this.CurrentUser)
+            //{
+            //    Owner = this,
+            //    User = (User)this.CurrentUser.Clone()
+            //};
             optionsWindow.ShowDialog();
             
             if (!this.CurrentUser.Equals(optionsWindow.User))
@@ -230,6 +236,7 @@ namespace MailClient
                 {
                     this.Dispatcher.Invoke(() =>
                     {
+                        this.uids = new List<long>();
                         this.Cursor = Cursors.AppStarting;
                         if (messagesType == MessagesType.Inbox)
                             this.inboxListBox.Items.Clear();
@@ -246,7 +253,7 @@ namespace MailClient
                         this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
                         this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].DownloadEnvelopes(
                             this.messagesOffset, this.maxMessages, MessagesBeginningFrom.New,
-                            ((string subject) =>
+                            ((string subject, long uid) =>
                             {
                                 this.Dispatcher.Invoke(() =>
                                 {
@@ -259,6 +266,8 @@ namespace MailClient
                                     else if (messagesType == MessagesType.Basket)
                                         this.basketListBox.Items.Add(subject);
                                 });
+
+                                this.uids.Add(uid);
                             }));
                     }
                     catch (ServerException)
@@ -451,7 +460,41 @@ namespace MailClient
 
         private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            MessageBox.Show("Oh hi Mark!");
+            if (inboxThread != null && inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
+            long messageUid = -1;
+            switch (messagesType)
+            {
+                case MessagesType.Inbox:
+                    messageUid = this.uids[this.inboxListBox.SelectedIndex];
+                    break;
+                case MessagesType.Sent:
+                    messageUid = this.uids[this.sentListBox.SelectedIndex];
+                    break;
+                case MessagesType.Drafts:
+                    messageUid = this.uids[this.draftsListBox.SelectedIndex];
+                    break;
+                case MessagesType.Basket:
+                    messageUid = this.uids[this.basketListBox.SelectedIndex];
+                    break;
+                default:
+                    break;
+            }
+
+            if (messageUid != -1)
+            {
+                IMail mail = this.CurrentUser.EmailBoxes[
+                    this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
+                MailReadingWindow mailReadingWindow = new MailReadingWindow(mail)
+                {
+                    Owner = this
+                };
+                mailReadingWindow.Show();
+            }
         }
     }
 }

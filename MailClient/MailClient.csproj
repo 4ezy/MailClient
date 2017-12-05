@@ -69,6 +69,9 @@
     <Compile Include="AppOptionsWindow.xaml.cs">
       <DependentUpon>AppOptionsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MailReadingWindow.xaml.cs">
+      <DependentUpon>MailReadingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RegistrationWindow.xaml.cs">
       <DependentUpon>RegistrationWindow.xaml</DependentUpon>
     </Compile>
@@ -78,6 +81,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="EmailOptionsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="MailReadingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

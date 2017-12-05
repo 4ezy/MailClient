@@ -7,6 +7,7 @@ using Limilabs.Client.IMAP;
 using Limilabs.Client.SMTP;
 using Limilabs.Mail;
 using Limilabs.Client;
+using Limilabs.Mail.Headers;
 
 namespace MailClient
 {
@@ -194,8 +195,15 @@ namespace MailClient
             }
         }
 
+        public IMail DownloadMessage(long uid)
+        {
+            byte[] eml = imap.GetMessageByUID(uid);
+            IMail mail = new MailBuilder().CreateFromEml(eml);
+            return mail;
+        }
+
         public void DownloadEnvelopes(int offset, int maxMessagesCount, 
-            MessagesBeginningFrom beginningFrom, Action<string> subjectAddAction)
+            MessagesBeginningFrom beginningFrom, Action<string, long> subjectAddAction)
         {
             List<long> uidList = imap.Search(Flag.All);
             this.Inbox = new List<Envelope>();
@@ -216,7 +224,20 @@ namespace MailClient
                 }
 
                 this.Inbox.Add(envelope);
-                subjectAddAction.Invoke(envelope.Subject);
+
+                IList<MailBox> fromAddresses = envelope.From;
+                string fromString = string.Empty;
+
+                for (int j = 0; j < fromAddresses.Count; j++)
+                {
+                    fromString += fromAddresses[j].Name + " (" + fromAddresses[j].Address + ")";
+
+                    if (j < fromAddresses.Count - 1)
+                        fromString += ", ";
+                }
+
+                subjectAddAction.Invoke(fromString + " | " + envelope.Subject + " | " + envelope.Date.ToString(),
+                    envelope.UID.Value);
                 maxMessagesCount--;
             }
         }
