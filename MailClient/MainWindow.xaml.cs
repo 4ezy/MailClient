@@ -35,6 +35,7 @@ namespace MailClient
         private readonly int maxMessages = 20;
         private Thread inboxThread;
         private MessagesType messagesType = MessagesType.Inbox;
+        private int lastSelectedTabItemIdex = -1;
 
         public MainWindow()
         {
@@ -389,6 +390,11 @@ namespace MailClient
 
         private void Changed_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (changed.SelectedIndex == this.lastSelectedTabItemIdex)
+                return;
+            else
+                this.lastSelectedTabItemIdex = changed.SelectedIndex;
+
             if (inboxThread != null && inboxThread.IsAlive)
             {
                 inboxThread.Abort();
@@ -441,6 +447,11 @@ namespace MailClient
                     this.DownloadMessagesToClient(messagesType);
                 }
             }
+        }
+
+        private void ListBoxItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            MessageBox.Show("Oh hi Mark!");
         }
     }
 }
