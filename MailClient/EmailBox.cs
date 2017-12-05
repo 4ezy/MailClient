@@ -97,33 +97,52 @@ namespace MailClient
             };
         }
 
-        public bool Connect()
+        public bool ConnectImap()
         {
-            bool isOk = true;
+            bool isOk = false;
 
             try
             {
                 this.imap = new Imap();
                 this.imap.ConnectSSL(ImapServerAddress, ImapPort);
                 this.imap.UseBestLogin(EmailAddress, Password);
-                this.imap.SelectInbox();
                 this.inbox = new List<Envelope>();
+                isOk = true;
             }
             catch (Exception)
             {
-                return isOk = false;
+                isOk = false;
             }
+
+            return isOk;
+        }
+
+        public bool ConnectSmtp()
+        {
+            bool isOk = false;
 
             try
             {
                 this.smtp = new Smtp();
                 this.smtp.ConnectSSL(SmtpServerAddress, SmtpPort);
                 this.smtp.UseBestLogin(EmailAddress, Password);
+                isOk = true;
             }
             catch (Exception)
             {
-                return isOk = false;
+                isOk = false;
             }
+
+            return isOk;
+        }
+
+        public bool ConnectFull()
+        {
+            bool isOk = false;
+
+            isOk = this.ConnectImap();
+
+            isOk = this.ConnectSmtp();
 
             return isOk;
         }
@@ -133,29 +152,36 @@ namespace MailClient
             List<FolderInfo> list = imap.GetFolders();
             FolderInfo folder = null;
 
-            if (messagesType == MessagesType.Inbox)
+            try
             {
-                folder = (from f in list
-                          where f.ShortName == "Входящие" || f.ShortName == "INBOX"
-                          select f).First();
+                if (messagesType == MessagesType.Inbox)
+                {
+                    folder = (from f in list
+                              where f.ShortName == "Входящие" || f.ShortName == "INBOX"
+                              select f).First();
+                }
+                else if (messagesType == MessagesType.Sent)
+                {
+                    folder = (from f in list
+                              where f.ShortName == "Отправленные"
+                              select f).First();
+                }
+                else if (messagesType == MessagesType.Drafts)
+                {
+                    folder = (from f in list
+                              where f.ShortName == "Черновики"
+                              select f).First();
+                }
+                else if (messagesType == MessagesType.Basket)
+                {
+                    folder = (from f in list
+                              where f.ShortName == "Корзина" || f.ShortName == "Удаленные"
+                              select f).First();
+                }
             }
-            else if (messagesType == MessagesType.Sent)
+            catch (Exception)
             {
-                folder = (from f in list
-                          where f.ShortName == "Отправленные"
-                          select f).First();
-            }
-            else if (messagesType == MessagesType.Drafts)
-            {
-                folder = (from f in list
-                          where f.ShortName == "Черновики"
-                          select f).First();
-            }
-            else if (messagesType == MessagesType.Basket)
-            {
-                folder = (from f in list
-                          where f.ShortName == "Корзина" || f.ShortName == "Удаленные"
-                          select f).First();
+                folder = null;
             }
 
             try
@@ -164,7 +190,7 @@ namespace MailClient
             }
             catch (NullReferenceException)
             {
-                return;
+                throw new Exception("Папки с таким именем не существует.");
             }
         }
 

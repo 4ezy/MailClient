@@ -15,7 +15,7 @@ namespace MailClientTests
             EmailBox emailBox = new EmailBox("aksonov10@gmail.com", "Db64ce15345", "imap.gmail.com",
                 993, "smtp.gmail.com", 465);
 
-            Assert.AreEqual(true, emailBox.Connect());
+            Assert.AreEqual(true, emailBox.ConnectFull());
         }
 
         [TestMethod]

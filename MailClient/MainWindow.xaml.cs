@@ -32,7 +32,7 @@ namespace MailClient
 
         public User CurrentUser { get; private set; }
         private int messagesOffset = 0;
-        private int maxMessages = 20;
+        private readonly int maxMessages = 20;
         private Thread inboxThread;
         private MessagesType messagesType = MessagesType.Inbox;
 
@@ -45,16 +45,16 @@ namespace MailClient
         {
             this.MailClientInitializationData();
 
-            if (this.CurrentUser.SelectedEmailBoxIndex != -1)
-            {
-                Mouse.OverrideCursor = Cursors.Wait;
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
-                Mouse.OverrideCursor = null;
-                this.messagesOffset = 0;
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
-                this.DownloadMessagesToClient(messagesType);
-            }
+            //if (this.CurrentUser.SelectedEmailBoxIndex != -1)
+            //{
+            //    Mouse.OverrideCursor = Cursors.Wait;
+            //    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
+            //    Mouse.OverrideCursor = null;
+            //    this.messagesOffset = 0;
+            //    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectFull();
+            //    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
+            //    this.DownloadMessagesToClient(messagesType);
+            //}
         }
 
         private void OptionsMenuItem_Click(object sender, RoutedEventArgs e)
@@ -96,9 +96,17 @@ namespace MailClient
                 File.Delete(MainWindow.RememberMeDataPath);
 
             this.MailClientInitializationData();
-            Mouse.OverrideCursor = Cursors.Wait;
-            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
-            Mouse.OverrideCursor = null;
+
+            if (this.CurrentUser.SelectedEmailBoxIndex != -1)
+            {
+                Mouse.OverrideCursor = Cursors.Wait;
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
+                Mouse.OverrideCursor = null;
+                this.messagesOffset = 0;
+                //this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectFull();
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
+                this.DownloadMessagesToClient(messagesType);
+            }
         }
 
         private void EmailAccountsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -110,12 +118,29 @@ namespace MailClient
             }
 
             this.CurrentUser.SelectedEmailBoxIndex = this.emailAccountsComboBox.SelectedIndex;
+
             if (this.CurrentUser.SelectedEmailBoxIndex != -1)
             {
+                this.inboxListBox.Items.Clear();
+                this.sentListBox.Items.Clear();
+                this.draftsListBox.Items.Clear();
+                this.basketListBox.Items.Clear();
+
                 this.messagesOffset = 0;
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
-                this.DownloadMessagesToClient(messagesType);
+                Task.Factory.StartNew(() =>
+                {
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        Mouse.OverrideCursor = Cursors.Wait;
+                    });
+                    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        Mouse.OverrideCursor = null;
+                    });
+                    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
+                    this.DownloadMessagesToClient(messagesType);
+                });
             }
         }
 
@@ -193,7 +218,10 @@ namespace MailClient
         private void DownloadMessagesToClient(MessagesType messagesType)
         {
             if (inboxThread != null && inboxThread.IsAlive)
+            {
                 inboxThread.Abort();
+                inboxThread.Join();
+            }
 
             if (this.CurrentUser.EmailBoxes.Count != 0)
             {
@@ -234,7 +262,7 @@ namespace MailClient
                     }
                     catch (ServerException)
                     {
-                        this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+                        this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
                         this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
                     }
 
@@ -256,94 +284,107 @@ namespace MailClient
 
         private void ToStartButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread != null && inboxThread.IsAlive)
+            if (this.CurrentUser.EmailBoxes[
+                this.CurrentUser.SelectedEmailBoxIndex].Imap.CurrentFolder != null)
             {
-                inboxThread.Abort();
-                inboxThread.Join();
+                if (inboxThread != null && inboxThread.IsAlive)
+                {
+                    inboxThread.Abort();
+                    inboxThread.Join();
+                }
+
+                this.messagesOffset = 0;
+
+                this.toStartButton.IsEnabled = false;
+                this.backButton.IsEnabled = false;
+                this.nextButton.IsEnabled = true;
+                this.toEndButton.IsEnabled = true;
+
+                this.DownloadMessagesToClient(messagesType);
             }
-
-            this.messagesOffset = 0;
-
-            this.toStartButton.IsEnabled = false;
-            this.backButton.IsEnabled = false;
-            this.nextButton.IsEnabled = true;
-            this.toEndButton.IsEnabled = true;
-
-            this.DownloadMessagesToClient(messagesType);
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread != null && inboxThread.IsAlive)
+            if (this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.CurrentFolder != null)
             {
-                inboxThread.Abort();
-                inboxThread.Join();
-            }
+                if (inboxThread != null && inboxThread.IsAlive)
+                {
+                    inboxThread.Abort();
+                    inboxThread.Join();
+                }
 
-            if (this.messagesOffset > this.maxMessages)
-            {
-                this.toStartButton.IsEnabled = true;
-                this.backButton.IsEnabled = true;
-            }
-            else
-            {
-                this.toStartButton.IsEnabled = false;
-                this.backButton.IsEnabled = false;
-            }
+                if (this.messagesOffset > this.maxMessages)
+                {
+                    this.toStartButton.IsEnabled = true;
+                    this.backButton.IsEnabled = true;
+                }
+                else
+                {
+                    this.toStartButton.IsEnabled = false;
+                    this.backButton.IsEnabled = false;
+                }
 
-            this.nextButton.IsEnabled = true;
-            this.toEndButton.IsEnabled = true;
-            this.messagesOffset -= this.maxMessages;
-            this.DownloadMessagesToClient(messagesType);
+                this.nextButton.IsEnabled = true;
+                this.toEndButton.IsEnabled = true;
+                this.messagesOffset -= this.maxMessages;
+                this.DownloadMessagesToClient(messagesType);
+            }
         }
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread != null && inboxThread.IsAlive)
+            if (this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.CurrentFolder != null)
             {
-                inboxThread.Abort();
-                inboxThread.Join();
-            }
+                if (inboxThread != null && inboxThread.IsAlive)
+                {
+                    inboxThread.Abort();
+                    inboxThread.Join();
+                }
 
-            int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
-            int messageBorder = messageCount / this.maxMessages * this.maxMessages;
-            this.messagesOffset += this.maxMessages;
+                int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
+                int messageBorder = messageCount / this.maxMessages * this.maxMessages;
+                this.messagesOffset += this.maxMessages;
 
-            if (this.messagesOffset < messageBorder)
-            {
-                this.nextButton.IsEnabled = true;
-                this.toEndButton.IsEnabled = true;
-            }
-            else
-            {
-                this.nextButton.IsEnabled = false;
-                this.toEndButton.IsEnabled = false;
-            }
+                if (this.messagesOffset < messageBorder)
+                {
+                    this.nextButton.IsEnabled = true;
+                    this.toEndButton.IsEnabled = true;
+                }
+                else
+                {
+                    this.nextButton.IsEnabled = false;
+                    this.toEndButton.IsEnabled = false;
+                }
 
-            this.toStartButton.IsEnabled = true;
-            this.backButton.IsEnabled = true;
-            
-            this.DownloadMessagesToClient(messagesType);
+                this.toStartButton.IsEnabled = true;
+                this.backButton.IsEnabled = true;
+
+                this.DownloadMessagesToClient(messagesType);
+            }
         }
 
         private void ToEndButton_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread != null && inboxThread.IsAlive)
+            if (this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.CurrentFolder != null)
             {
-                inboxThread.Abort();
-                inboxThread.Join();
-            }
+                if (inboxThread != null && inboxThread.IsAlive)
+                {
+                    inboxThread.Abort();
+                    inboxThread.Join();
+                }
 
-            int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
+                int messageCount = this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap.Search(Flag.All).Count;
 
-            this.messagesOffset = messageCount / this.maxMessages * this.maxMessages;
+                this.messagesOffset = messageCount / this.maxMessages * this.maxMessages;
 
-            this.toStartButton.IsEnabled = true;
-            this.backButton.IsEnabled = true;
-            this.nextButton.IsEnabled = false;
-            this.toEndButton.IsEnabled = false;
+                this.toStartButton.IsEnabled = true;
+                this.backButton.IsEnabled = true;
+                this.nextButton.IsEnabled = false;
+                this.toEndButton.IsEnabled = false;
 
-            DownloadMessagesToClient(messagesType);
+                DownloadMessagesToClient(messagesType);
+            } 
         }
 
         private void Changed_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -395,8 +436,8 @@ namespace MailClient
                     }
 
                     this.messagesOffset = 0;
-                    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(this.messagesType);
-                    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Connect();
+                    //this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(this.messagesType);
+                    //this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
                     this.DownloadMessagesToClient(messagesType);
                 }
             }

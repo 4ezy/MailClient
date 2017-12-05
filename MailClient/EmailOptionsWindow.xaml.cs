@@ -76,7 +76,7 @@ namespace MailClient
                         this.acceptButton.IsEnabled = false;
                     });
 
-                    bool isConnected = emailBox.Connect();
+                    bool isConnected = emailBox.ConnectFull();
 
                     if (isConnected)
                     {
