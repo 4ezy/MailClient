@@ -1,0 +1,42 @@
+﻿<Window x:Class="MailClient.InboxMailReadingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:MailClient"
+        mc:Ignorable="d"
+        Title="MailReadingWindow" Width="700" Height="500" 
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip">
+    <Grid Margin="20, 0, 20, 10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="145"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <Label Content="От:"/>
+            <TextBox x:Name="fromTextBox" IsReadOnly="True"/>
+            <Label Content="Дата:"/>
+            <TextBox x:Name="dateTextBox" IsReadOnly="True"/>
+            <Label Content="Тема:"/>
+            <TextBox x:Name="subjectTextBox" IsReadOnly="True"/>
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition Height="150"/>
+            </Grid.RowDefinitions>
+            <RichTextBox Grid.Row="0" x:Name="textRichTextBox" IsReadOnly="True"  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="24"/>
+                    <RowDefinition/>
+                    <RowDefinition Height="24"/>
+                </Grid.RowDefinitions>
+                <Label Grid.Row="0" Content="Приложения:"/>
+                <ListBox x:Name="attachmentsListBox" Grid.Row="1" Margin="0, 0, 0, 10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                <Button x:Name="saveAttachmentsButton" Grid.Row="2" HorizontalAlignment="Left"
+                        Content="Сохранить" Width="100"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

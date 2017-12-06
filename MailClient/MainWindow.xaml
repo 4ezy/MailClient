@@ -16,7 +16,7 @@
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
-            <MenuItem x:Name="writeMenuItem" Header="Написать"/>
+            <MenuItem x:Name="writeMenuItem" Header="Написать" Click="WriteMenuItem_Click"/>
             <MenuItem x:Name="optionsMenuItem" Header="Учётная запись" Click="OptionsMenuItem_Click"/>
             <MenuItem x:Name="exitMenuItem" Header="Выход" Click="ExitMenuItem_Click"/>
         </Menu>

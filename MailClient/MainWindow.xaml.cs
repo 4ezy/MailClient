@@ -487,14 +487,57 @@ namespace MailClient
 
             if (messageUid != -1)
             {
-                IMail mail = this.CurrentUser.EmailBoxes[
-                    this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
-                MailReadingWindow mailReadingWindow = new MailReadingWindow(mail)
+                switch (messagesType)
                 {
-                    Owner = this
-                };
-                mailReadingWindow.Show();
+                    case MessagesType.Inbox:
+                        IMail inboxMail = this.CurrentUser.EmailBoxes[
+                            this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
+                        InboxMailReadingWindow inboxMailReadingWindow = new InboxMailReadingWindow(inboxMail)
+                        {
+                            Owner = this
+                        };
+                        inboxMailReadingWindow.Show();
+                        break;
+                    case MessagesType.Sent:
+                        IMail sentMail = this.CurrentUser.EmailBoxes[
+                            this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
+                        SentMailReadingWindow sentMailReadingWindow = new SentMailReadingWindow(sentMail)
+                        {
+                            Owner = this
+                        };
+                        sentMailReadingWindow.Show();
+                        break;
+                    case MessagesType.Drafts:
+                        break;
+                    case MessagesType.Basket:
+                        IMail basketMail = this.CurrentUser.EmailBoxes[
+                            this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
+                        BasketMailReadingWindow basketMailReadingWindow = new BasketMailReadingWindow(basketMail)
+                        {
+                            Owner = this
+                        };
+                        basketMailReadingWindow.Show();
+                        break;
+                    default:
+                        break;
+                }
             }
+        }
+
+        private void WriteMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (inboxThread != null && inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
+            SendMailWindow sendMailWindow = new SendMailWindow(
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap)
+            {
+                Owner = this
+            };
+            sendMailWindow.Show();
         }
     }
 }

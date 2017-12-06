@@ -20,16 +20,16 @@ namespace MailClient
     /// <summary>
     /// Логика взаимодействия для MailReadingWindow.xaml
     /// </summary>
-    public partial class MailReadingWindow : Window
+    public partial class InboxMailReadingWindow : Window
     {
         public IMail Message { get; private set; }
 
-        public MailReadingWindow()
+        public InboxMailReadingWindow()
         {
             this.InitializeComponent();
         }
 
-        public MailReadingWindow(IMail message)
+        public InboxMailReadingWindow(IMail message)
         {
             this.InitializeComponent();
             this.Message = message;
@@ -58,10 +58,12 @@ namespace MailClient
 
                 this.subjectTextBox.Text = this.Message.Subject;
 
-                if (this.Message.Rtf == String.Empty)
+                if (this.Message.IsText)
                     this.textRichTextBox.AppendText(this.Message.Text);
-                else
+                else if (this.Message.IsRtf)
                     this.textRichTextBox.AppendText(this.Message.Rtf);
+                else if (this.Message.IsHtml)
+                    this.textRichTextBox.AppendText("Это письмо содержит html. К сожалению, его отображение не поддерживается.");
 
                 foreach (MimeData item in this.Message.Attachments)
                 {

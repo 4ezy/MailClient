@@ -60,6 +60,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="BasketMailReadingWindow.xaml.cs">
+      <DependentUpon>BasketMailReadingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="BinarySerializer.cs" />
     <Compile Include="EmailBox.cs" />
     <Compile Include="EmailOptionsWindow.xaml.cs">
@@ -69,14 +72,24 @@
     <Compile Include="AppOptionsWindow.xaml.cs">
       <DependentUpon>AppOptionsWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MailReadingWindow.xaml.cs">
-      <DependentUpon>MailReadingWindow.xaml</DependentUpon>
+    <Compile Include="InboxMailReadingWindow.xaml.cs">
+      <DependentUpon>InboxMailReadingWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="RegistrationWindow.xaml.cs">
       <DependentUpon>RegistrationWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SendMailWindow.xaml.cs">
+      <DependentUpon>SendMailWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="SentMailReadingWindow.xaml.cs">
+      <DependentUpon>SentMailReadingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="User.cs" />
     <Page Include="AuthWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="BasketMailReadingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -84,7 +97,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MailReadingWindow.xaml">
+    <Page Include="InboxMailReadingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -108,6 +121,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="RegistrationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SendMailWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SentMailReadingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

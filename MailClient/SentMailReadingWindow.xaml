@@ -1,11 +1,11 @@
-﻿<Window x:Class="MailClient.MailReadingWindow"
+﻿<Window x:Class="MailClient.SentMailReadingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MailClient"
         mc:Ignorable="d"
-        Title="MailReadingWindow" Width="700" Height="500" 
+        Title="SentMailReadingWindow" Width="700" Height="500" 
         WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip">
     <Grid Margin="20, 0, 20, 10">
         <Grid.RowDefinitions>
@@ -13,8 +13,8 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
-            <Label Content="От:"/>
-            <TextBox x:Name="fromTextBox" IsReadOnly="True"/>
+            <Label Content="Кому:"/>
+            <TextBox x:Name="toTextBox" IsReadOnly="True"/>
             <Label Content="Дата:"/>
             <TextBox x:Name="dateTextBox" IsReadOnly="True"/>
             <Label Content="Тема:"/>
@@ -23,7 +23,7 @@
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition/>
-                <RowDefinition/>
+                <RowDefinition Height="150"/>
             </Grid.RowDefinitions>
             <RichTextBox Grid.Row="0" x:Name="textRichTextBox" IsReadOnly="True"  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             <Grid Grid.Row="1">
