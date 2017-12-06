@@ -1,12 +1,15 @@
 ﻿using Limilabs.Client.IMAP;
+using Limilabs.Client.SMTP;
 using Limilabs.Mail;
+using Limilabs.Mail.Headers;
+using Limilabs.Mail.MIME;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,18 +27,19 @@ namespace MailClient
     /// </summary>
     public partial class SendMailWindow : Window
     {
-        public Imap Imap { get; private set; }
+        private EmailBox EmailBox { get; set; }
         private List<byte[]> Attachments { get; set; }
+        Thread sendThread;
 
         public SendMailWindow()
         {
             this.InitializeComponent();
         }
 
-        public SendMailWindow(Imap userImap)
+        public SendMailWindow(EmailBox emailBox)
         {
             this.InitializeComponent();
-            this.Imap = userImap;
+            this.EmailBox = emailBox;
             this.Attachments = new List<byte[]>();
         }
 
@@ -51,8 +55,16 @@ namespace MailClient
             {
                 for (int i = 0; i < ofd.FileNames.Length; i++)
                 {
-                    this.Attachments.Add(File.ReadAllBytes(ofd.FileNames[i]));
-                    this.attachmentsListBox.Items.Add(ofd.SafeFileNames[i]);
+                    byte[] fileData = File.ReadAllBytes(ofd.FileNames[i]);
+
+                    if (fileData.Length < 10000000)
+                    {
+                        this.Attachments.Add(fileData);
+                        this.attachmentsListBox.Items.Add(ofd.SafeFileNames[i]);
+                    }
+                    else
+                        MessageBox.Show(String.Format("Файл {0} слишком большой. Можно передавать файлы размером до 10 МБ.", ofd.SafeFileName[i]),
+                            "Ошибка",MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -63,6 +75,54 @@ namespace MailClient
             {
                 this.Attachments.RemoveAt(this.attachmentsListBox.SelectedIndex);
                 this.attachmentsListBox.Items.RemoveAt(this.attachmentsListBox.SelectedIndex);
+            }
+        }
+
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            MailBuilder mailBuilder = new MailBuilder();
+            mailBuilder.From.Add(new MailBox(this.EmailBox.EmailAddress));
+            mailBuilder.To.Add(new MailBox(this.toTextBox.Text.Trim(' ')));
+            mailBuilder.Subject = this.subjectTextBox.Text;
+
+            if (this.encryptMessage.IsChecked == false)
+            {
+                mailBuilder.Rtf = new TextRange(this.textRichTextBox.Document.ContentStart,
+                   this.textRichTextBox.Document.ContentEnd).Text;
+            }
+
+            for (int i = 0; i < this.Attachments.Count; i++)
+            {
+                MimeData mime = mailBuilder.AddAttachment(this.Attachments[i]);
+                mime.FileName = (string)this.attachmentsListBox.Items[i];
+            }
+
+            IMail mail = mailBuilder.Create();
+
+            if (sendThread != null && sendThread.IsAlive)
+            {
+                sendThread.Abort();
+                sendThread.Join();
+            }
+
+            sendThread = new Thread(() =>
+            {
+                this.EmailBox.Smtp.SendMessage(mail);
+            });
+            sendThread.Start();
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (sendThread != null && sendThread.IsAlive)
+            {
+                sendThread.Abort();
+                sendThread.Join();
             }
         }
     }

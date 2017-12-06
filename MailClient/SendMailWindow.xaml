@@ -6,26 +6,38 @@
         xmlns:local="clr-namespace:MailClient"
         mc:Ignorable="d"
         Title="SendMailWindow" Width="700" Height="500" 
-        WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip">
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip" Closing="Window_Closing">
     <Grid Margin="20, 0, 20, 10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="145"/>
+            <RowDefinition Height="100"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
             <Label Content="Кому:"/>
-            <TextBox x:Name="toTextBox" IsReadOnly="True"/>
-            <Label Content="Дата:"/>
-            <TextBox x:Name="dateTextBox" IsReadOnly="True"/>
+            <TextBox x:Name="toTextBox"/>
             <Label Content="Тема:"/>
-            <TextBox x:Name="subjectTextBox" IsReadOnly="True"/>
+            <TextBox x:Name="subjectTextBox"/>
         </StackPanel>
         <Grid Grid.Row="1">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="180"/>
             </Grid.RowDefinitions>
-            <RichTextBox Grid.Row="0" x:Name="textRichTextBox" IsReadOnly="True"  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="26"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <ToolBar>
+                    <Button x:Name="boldTextButton" FontWeight="Bold" Click="BoldTextButton_Click" Command="EditingCommands.ToggleBold">Bold</Button>
+                    <Button x:Name="italicTextButton" FontStyle="Italic" Click="ItalicTextButton_Click" Command="EditingCommands.ToggleItalic">Italic</Button>
+                    <Button x:Name="underlineTextButton" Click="UnderlineTextButton_Click" Command="EditingCommands.ToggleUnderline">
+                        <TextBlock TextDecorations="Underline">Underline</TextBlock>
+                    </Button>
+                </ToolBar>
+                <RichTextBox Grid.Row="1" x:Name="textRichTextBox"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </Grid>
             <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="24"/>
@@ -35,7 +47,8 @@
                     <RowDefinition Height="24"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Content="Приложения:"/>
-                <ListBox x:Name="attachmentsListBox" Grid.Row="1" Margin="0, 0, 0, 5" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                <ListBox x:Name="attachmentsListBox" Grid.Row="1"
+                         Margin="0, 0, 0, 5" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
                 <StackPanel Grid.Row="2" Orientation="Horizontal">
                     <Button x:Name="loadAttachmentsButton"
                         Content="Загрузить" Width="100" Click="LoadAttachmentsButton_Click"/>
@@ -43,8 +56,8 @@
                 </StackPanel>
                 <CheckBox Grid.Row="3" x:Name="encryptMessage" Content="Зашифровать сообщение" VerticalAlignment="Center"/>
                 <StackPanel Grid.Row="4" Orientation="Horizontal">
-                    <Button x:Name="sendButton" Content="Отправить" Width="100"/>
-                    <Button x:Name="cancelButton" Content="Отмена" Width="100" Margin="10, 0, 0, 0"/>
+                    <Button x:Name="sendButton" Content="Отправить" Width="100" Click="SendButton_Click"/>
+                    <Button x:Name="cancelButton" Content="Отмена" Width="100" Margin="10, 0, 0, 0" Click="CancelButton_Click"/>
                 </StackPanel>
             </Grid>
         </Grid>

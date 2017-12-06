@@ -22,6 +22,10 @@ namespace MailClient
         public int SmtpPort { get; set; }
 
         [NonSerialized]
+        private string userKeyContainerName;
+        public string UserKeyContainerName { get => userKeyContainerName; }
+
+        [NonSerialized]
         private Imap imap;
 
         public Imap Imap
@@ -144,6 +148,9 @@ namespace MailClient
             isOk = this.ConnectImap();
 
             isOk = this.ConnectSmtp();
+
+            if (isOk)
+                this.userKeyContainerName = this.EmailAddress;
 
             return isOk;
         }

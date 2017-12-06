@@ -532,8 +532,15 @@ namespace MailClient
                 inboxThread.Join();
             }
 
+            if (this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Smtp == null ||
+                !this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Smtp.Connected)
+            {
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectSmtp();
+            }
+                
+
             SendMailWindow sendMailWindow = new SendMailWindow(
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Imap)
+                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex])
             {
                 Owner = this
             };
