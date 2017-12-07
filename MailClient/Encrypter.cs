@@ -203,6 +203,7 @@ namespace MailClient
         {
             byte[] signedData;
             byte[] hash = GetSha1Hash(data);
+
             DSACryptoServiceProvider dsa = new DSACryptoServiceProvider();
 
             if (File.Exists(MainWindow.UserDirectoryPath + keyContainerName + ".akey"))
@@ -241,7 +242,12 @@ namespace MailClient
                 ms.Seek(0, SeekOrigin.Begin);
                 ms.Read(signedHashLength, 0, 3);
                 ms.Seek(4 + BitConverter.ToInt32(signedHashLength, 0), SeekOrigin.Begin);
-                dataWithoutSign = ms.ToArray();
+                int dataStartPos = 4 + BitConverter.ToInt32(signedHashLength, 0);
+                int dataEndPos = (int)ms.Length - dataStartPos;
+
+                ms.Seek(dataStartPos, SeekOrigin.Begin);
+                dataWithoutSign = new byte[dataEndPos];
+                ms.Read(dataWithoutSign, 0, dataEndPos);
             }
 
             return dataWithoutSign;
@@ -254,8 +260,8 @@ namespace MailClient
             DSACryptoServiceProvider dsa = new DSACryptoServiceProvider();
             dsa.FromXmlString(File.ReadAllText(
                     MainWindow.UserDirectoryPath + keyContainerName + ".akey"));
-            DSASignatureDeformatter dSASignatureDeformatter = new DSASignatureDeformatter(dsa);
-            dSASignatureDeformatter.SetHashAlgorithm("SHA1");
+            DSASignatureDeformatter dSADeformatter = new DSASignatureDeformatter(dsa);
+            dSADeformatter.SetHashAlgorithm("SHA1");
 
             using (MemoryStream ms = new MemoryStream(data))
             {
@@ -265,7 +271,9 @@ namespace MailClient
                 byte[] signedHash = new byte[BitConverter.ToInt32(signedHashLength, 0)];
                 ms.Seek(4, SeekOrigin.Begin);
                 ms.Read(signedHash, 0, signedHash.Length);
-                checkResult = dsa.VerifySignature(ReturnDataWithoutHash(data), signedHash);
+                byte[] dat = ReturnDataWithoutHash(data);
+                byte[] hash = GetSha1Hash(dat);
+                checkResult = dSADeformatter.VerifySignature(hash, signedHash);  // TODO: вот здесь косяк
             }
 
             return checkResult;

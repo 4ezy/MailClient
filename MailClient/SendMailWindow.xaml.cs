@@ -115,12 +115,19 @@ namespace MailClient
             {
                 string data = new TextRange(this.textRichTextBox.Document.ContentStart,
                    this.textRichTextBox.Document.ContentEnd).Text;
-                Encoding encoding = Encoding.GetEncoding(0);
+                Encoding encoding = Encoding.GetEncoding(Encoding.UTF8.CodePage);
                 byte[] encrData = Encrypter.EncryptWithAesAndRsa(encoding.GetBytes(data),
                     this.EmailBox.UserKeyContainerName);
                 byte[] signedData = Encrypter.SignData(encrData,
                     this.EmailBox.UserKeyContainerName);
-                mailBuilder.Rtf = BitConverter.ToString(signedData);
+                string encString = String.Empty;
+
+                for (int i = 0; i < signedData.Length; i += 2)
+                {
+                    encString += BitConverter.ToChar(signedData, i);
+                }
+
+                mailBuilder.Rtf = encString;
             }
 
             for (int i = 0; i < this.Attachments.Count; i++)

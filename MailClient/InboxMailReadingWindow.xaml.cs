@@ -86,10 +86,18 @@ namespace MailClient
 
         private void DecryptMessage_Checked(object sender, RoutedEventArgs e)
         {
-            string rtfText = new TextRange(this.textRichTextBox.Document.ContentStart,
-                   this.textRichTextBox.Document.ContentEnd).Text;
-            Encoding encoding = Encoding.GetEncoding(0);
-            if (Encrypter.CheckSign(encoding.GetBytes(rtfText),
+            char[] rtfText = this.Message.Rtf.ToCharArray();
+            //Encoding encoding = Encoding.GetEncoding(Encoding.UTF8.CodePage);
+
+            List<byte> data = new List<byte>();
+
+            for (int i = 0; i < rtfText.Length; i++)
+            {
+                byte[] charBytes = BitConverter.GetBytes(rtfText[i]);
+                data.AddRange(charBytes);
+            }
+
+            if (Encrypter.CheckSign(data.ToArray(),
                 this.EmailBox.UserKeyContainerName))
                 MessageBox.Show("Ebat' ti molodec");
         }
