@@ -31,10 +31,12 @@
                     <RowDefinition Height="24"/>
                     <RowDefinition/>
                     <RowDefinition Height="24"/>
+                    <RowDefinition Height="24"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Content="Приложения:"/>
-                <ListBox x:Name="attachmentsListBox" Grid.Row="1" Margin="0, 0, 0, 10" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-                <Button x:Name="saveAttachmentsButton" Grid.Row="2" HorizontalAlignment="Left"
+                <ListBox x:Name="attachmentsListBox" Grid.Row="1" Margin="0, 0, 0, 5" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                <CheckBox Grid.Row="2" x:Name="decryptMessage" Content="Расшифровать сообщение" VerticalAlignment="Center" Checked="DecryptMessage_Checked"/>
+                <Button x:Name="saveAttachmentsButton" Grid.Row="3" HorizontalAlignment="Left"
                         Content="Сохранить" Width="100"/>
             </Grid>
         </Grid>

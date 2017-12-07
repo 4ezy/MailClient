@@ -119,6 +119,9 @@ namespace MailClient
                 isOk = false;
             }
 
+            if (isOk)
+                this.userKeyContainerName = this.EmailAddress;
+
             return isOk;
         }
 
@@ -137,6 +140,9 @@ namespace MailClient
             {
                 isOk = false;
             }
+
+            if (isOk)
+                this.userKeyContainerName = this.EmailAddress;
 
             return isOk;
         }

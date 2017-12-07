@@ -29,9 +29,9 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <ToolBar>
-                    <Button x:Name="boldTextButton" FontWeight="Bold" Click="BoldTextButton_Click" Command="EditingCommands.ToggleBold">Bold</Button>
-                    <Button x:Name="italicTextButton" FontStyle="Italic" Click="ItalicTextButton_Click" Command="EditingCommands.ToggleItalic">Italic</Button>
-                    <Button x:Name="underlineTextButton" Click="UnderlineTextButton_Click" Command="EditingCommands.ToggleUnderline">
+                    <Button x:Name="boldTextButton" FontWeight="Bold" Command="EditingCommands.ToggleBold">Bold</Button>
+                    <Button x:Name="italicTextButton" FontStyle="Italic" Command="EditingCommands.ToggleItalic">Italic</Button>
+                    <Button x:Name="underlineTextButton" Command="EditingCommands.ToggleUnderline">
                         <TextBlock TextDecorations="Underline">Underline</TextBlock>
                     </Button>
                 </ToolBar>

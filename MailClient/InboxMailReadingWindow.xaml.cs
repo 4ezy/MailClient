@@ -23,16 +23,18 @@ namespace MailClient
     public partial class InboxMailReadingWindow : Window
     {
         public IMail Message { get; private set; }
+        public EmailBox EmailBox { get; private set; }
 
         public InboxMailReadingWindow()
         {
             this.InitializeComponent();
         }
 
-        public InboxMailReadingWindow(IMail message)
+        public InboxMailReadingWindow(IMail message, EmailBox emailBox)
         {
             this.InitializeComponent();
             this.Message = message;
+            this.EmailBox = emailBox;
             this.ShowMessageInWindow();
         }
 
@@ -80,6 +82,16 @@ namespace MailClient
             {
                 throw;
             }
+        }
+
+        private void DecryptMessage_Checked(object sender, RoutedEventArgs e)
+        {
+            string rtfText = new TextRange(this.textRichTextBox.Document.ContentStart,
+                   this.textRichTextBox.Document.ContentEnd).Text;
+            Encoding encoding = Encoding.GetEncoding(0);
+            if (Encrypter.CheckSign(encoding.GetBytes(rtfText),
+                this.EmailBox.UserKeyContainerName))
+                MessageBox.Show("Ebat' ti molodec");
         }
     }
 }

@@ -80,20 +80,67 @@ namespace MailClient
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.toTextBox.Text is null)
+            {
+                MessageBox.Show("Требуется ввести имя получателя", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             MailBuilder mailBuilder = new MailBuilder();
             mailBuilder.From.Add(new MailBox(this.EmailBox.EmailAddress));
             mailBuilder.To.Add(new MailBox(this.toTextBox.Text.Trim(' ')));
-            mailBuilder.Subject = this.subjectTextBox.Text;
+
+            if (this.encryptMessage.IsChecked == false)
+            {
+                mailBuilder.Subject = this.subjectTextBox.Text;
+            }
+            else
+            {
+                string data = this.subjectTextBox.Text;
+                Encoding encoding = Encoding.GetEncoding(0);
+                byte[] encrData = Encrypter.EncryptWithAesAndRsa(encoding.GetBytes(data),
+                    this.EmailBox.UserKeyContainerName);
+                byte[] signedData = Encrypter.SignData(encrData, 
+                    this.EmailBox.UserKeyContainerName);
+                mailBuilder.Subject = BitConverter.ToString(signedData);
+            }
 
             if (this.encryptMessage.IsChecked == false)
             {
                 mailBuilder.Rtf = new TextRange(this.textRichTextBox.Document.ContentStart,
                    this.textRichTextBox.Document.ContentEnd).Text;
             }
+            else
+            {
+                string data = new TextRange(this.textRichTextBox.Document.ContentStart,
+                   this.textRichTextBox.Document.ContentEnd).Text;
+                Encoding encoding = Encoding.GetEncoding(0);
+                byte[] encrData = Encrypter.EncryptWithAesAndRsa(encoding.GetBytes(data),
+                    this.EmailBox.UserKeyContainerName);
+                byte[] signedData = Encrypter.SignData(encrData,
+                    this.EmailBox.UserKeyContainerName);
+                mailBuilder.Rtf = BitConverter.ToString(signedData);
+            }
 
             for (int i = 0; i < this.Attachments.Count; i++)
             {
-                MimeData mime = mailBuilder.AddAttachment(this.Attachments[i]);
+                MimeData mime;
+
+                if (this.encryptMessage.IsChecked == false)
+                {
+                    mime = mailBuilder.AddAttachment(this.Attachments[i]);
+                }
+                else
+                {
+                    byte[] data = this.Attachments[i];
+                    byte[] encrData = Encrypter.EncryptWithAesAndRsa(data,
+                        this.EmailBox.UserKeyContainerName);
+                    byte[] signedData = Encrypter.SignData(encrData, 
+                        this.EmailBox.UserKeyContainerName);
+                    mime = mailBuilder.AddAttachment(signedData);
+                }
+
                 mime.FileName = (string)this.attachmentsListBox.Items[i];
             }
 
@@ -107,7 +154,18 @@ namespace MailClient
 
             sendThread = new Thread(() =>
             {
+                this.Dispatcher.Invoke(() =>
+                {
+                    Mouse.OverrideCursor = Cursors.AppStarting;
+                });
+
                 this.EmailBox.Smtp.SendMessage(mail);
+                
+                this.Dispatcher.Invoke(() =>
+                {
+                    this.Close();
+                    Mouse.OverrideCursor = null;
+                });
             });
             sendThread.Start();
         }

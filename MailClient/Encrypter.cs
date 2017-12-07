@@ -53,33 +53,6 @@ namespace MailClient
             return encryptedData;
         }
 
-        public static byte[] GetSha1Hash(byte[] data)
-        {
-            byte[] signedData;
-            using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
-            {
-                signedData = sha1.ComputeHash(data);
-            }
-            return signedData;
-        }
-
-        public static byte[] AddHashToData(byte[] data)
-        {
-            byte[] dataWithHash;
-            byte[] hash = GetSha1Hash(data);
-            byte[] hashLength = BitConverter.GetBytes(hash.Length);
-
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ms.Write(data, 0, data.Length);
-                ms.Write(hashLength, 0, hashLength.Length);
-                ms.Write(hash, 0, hash.Length);
-                dataWithHash = ms.ToArray();
-            }
-
-            return dataWithHash;
-        }
-
         public static byte[] DecryptWithAesAndRsa(byte[] data, string keyContainerName)
         {
             CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName };
@@ -197,6 +170,105 @@ namespace MailClient
             byte[] decData = File.ReadAllBytes(path);
             byte[] data = Encrypter.DecryptWithAesManaged(decData, key, iv);
             return data;
+        }
+
+        private static byte[] GetSha1Hash(byte[] data)
+        {
+            byte[] signedData;
+            using (SHA1CryptoServiceProvider sha1 = new SHA1CryptoServiceProvider())
+            {
+                signedData = sha1.ComputeHash(data);
+            }
+            return signedData;
+        }
+
+        private static byte[] ComputeHashAndAddIt(byte[] data)
+        {
+            byte[] dataWithHash;
+            byte[] hash = GetSha1Hash(data);
+            byte[] hashLength = BitConverter.GetBytes(hash.Length);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(hashLength, 0, hashLength.Length);
+                ms.Write(hash, 0, hash.Length);
+                ms.Write(data, 0, data.Length);
+                dataWithHash = ms.ToArray();
+            }
+
+            return dataWithHash;
+        }
+
+        public static byte[] SignData(byte[] data, string keyContainerName)
+        {
+            byte[] signedData;
+            byte[] hash = GetSha1Hash(data);
+            DSACryptoServiceProvider dsa = new DSACryptoServiceProvider();
+
+            if (File.Exists(MainWindow.UserDirectoryPath + keyContainerName + ".akey"))
+            {
+                dsa.FromXmlString(File.ReadAllText(
+                    MainWindow.UserDirectoryPath + keyContainerName + ".akey"));
+            }
+            else
+            {
+                File.WriteAllText(MainWindow.UserDirectoryPath + keyContainerName + ".akey",
+                    dsa.ToXmlString(true));
+            }
+
+            DSASignatureFormatter dsaFormatter = new DSASignatureFormatter(dsa);
+            dsaFormatter.SetHashAlgorithm("SHA1");
+            byte[] signedHash = dsaFormatter.CreateSignature(hash);
+            byte[] signedHashLength = BitConverter.GetBytes(signedHash.Length);
+
+            using (MemoryStream ms = new MemoryStream())
+            {
+                ms.Write(signedHashLength, 0, signedHashLength.Length);
+                ms.Write(signedHash, 0, signedHash.Length);
+                ms.Write(data, 0, data.Length);
+                signedData = ms.ToArray();
+            }
+
+            return signedData;
+        }
+
+        public static byte[] ReturnDataWithoutHash(byte[] data)
+        {
+            byte[] dataWithoutSign;
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                byte[] signedHashLength = new byte[4];
+                ms.Seek(0, SeekOrigin.Begin);
+                ms.Read(signedHashLength, 0, 3);
+                ms.Seek(4 + BitConverter.ToInt32(signedHashLength, 0), SeekOrigin.Begin);
+                dataWithoutSign = ms.ToArray();
+            }
+
+            return dataWithoutSign;
+        }
+
+        public static bool CheckSign(byte[] data, string keyContainerName)
+        {
+            bool checkResult;
+
+            DSACryptoServiceProvider dsa = new DSACryptoServiceProvider();
+            dsa.FromXmlString(File.ReadAllText(
+                    MainWindow.UserDirectoryPath + keyContainerName + ".akey"));
+            DSASignatureDeformatter dSASignatureDeformatter = new DSASignatureDeformatter(dsa);
+            dSASignatureDeformatter.SetHashAlgorithm("SHA1");
+
+            using (MemoryStream ms = new MemoryStream(data))
+            {
+                byte[] signedHashLength = new byte[4];
+                ms.Seek(0, SeekOrigin.Begin);
+                ms.Read(signedHashLength, 0, 3);
+                byte[] signedHash = new byte[BitConverter.ToInt32(signedHashLength, 0)];
+                ms.Seek(4, SeekOrigin.Begin);
+                ms.Read(signedHash, 0, signedHash.Length);
+                checkResult = dsa.VerifySignature(ReturnDataWithoutHash(data), signedHash);
+            }
+
+            return checkResult;
         }
     }
 }

@@ -492,7 +492,8 @@ namespace MailClient
                     case MessagesType.Inbox:
                         IMail inboxMail = this.CurrentUser.EmailBoxes[
                             this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
-                        InboxMailReadingWindow inboxMailReadingWindow = new InboxMailReadingWindow(inboxMail)
+                        InboxMailReadingWindow inboxMailReadingWindow = new InboxMailReadingWindow(inboxMail,
+                            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex])
                         {
                             Owner = this
                         };
