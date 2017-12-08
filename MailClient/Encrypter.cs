@@ -271,8 +271,10 @@ namespace MailClient
                 byte[] signedHash = new byte[BitConverter.ToInt32(signedHashLength, 0)];
                 ms.Seek(4, SeekOrigin.Begin);
                 ms.Read(signedHash, 0, signedHash.Length);
+
                 byte[] dat = ReturnDataWithoutHash(data);
                 byte[] hash = GetSha1Hash(dat);
+
                 checkResult = dSADeformatter.VerifySignature(hash, signedHash);  // TODO: вот здесь косяк
             }
 

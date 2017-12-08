@@ -546,6 +546,7 @@ namespace MailClient
                 Owner = this
             };
             sendMailWindow.Show();
+            //this.DownloadMessagesToClient(this.messagesType);
         }
     }
 }

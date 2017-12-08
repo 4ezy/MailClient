@@ -18,7 +18,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace MailClient
 {
@@ -64,7 +63,7 @@ namespace MailClient
                     }
                     else
                         MessageBox.Show(String.Format("Файл {0} слишком большой. Можно передавать файлы размером до 10 МБ.", ofd.SafeFileName[i]),
-                            "Ошибка",MessageBoxButton.OK, MessageBoxImage.Error);
+                            "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -76,13 +75,18 @@ namespace MailClient
                 this.Attachments.RemoveAt(this.attachmentsListBox.SelectedIndex);
                 this.attachmentsListBox.Items.RemoveAt(this.attachmentsListBox.SelectedIndex);
             }
+            else
+            {
+                MessageBox.Show("Выберите приложение, что удалить его!", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
             if (this.toTextBox.Text is null)
             {
-                MessageBox.Show("Требуется ввести имя получателя", "Ошибка",
+                MessageBox.Show("Требуется ввести имя получателя.", "Ошибка",
                     MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
@@ -90,64 +94,18 @@ namespace MailClient
             MailBuilder mailBuilder = new MailBuilder();
             mailBuilder.From.Add(new MailBox(this.EmailBox.EmailAddress));
             mailBuilder.To.Add(new MailBox(this.toTextBox.Text.Trim(' ')));
-
-            if (this.encryptMessage.IsChecked == false)
-            {
-                mailBuilder.Subject = this.subjectTextBox.Text;
-            }
-            else
-            {
-                string data = this.subjectTextBox.Text;
-                Encoding encoding = Encoding.GetEncoding(0);
-                byte[] encrData = Encrypter.EncryptWithAesAndRsa(encoding.GetBytes(data),
-                    this.EmailBox.UserKeyContainerName);
-                byte[] signedData = Encrypter.SignData(encrData, 
-                    this.EmailBox.UserKeyContainerName);
-                mailBuilder.Subject = BitConverter.ToString(signedData);
-            }
-
-            if (this.encryptMessage.IsChecked == false)
-            {
-                mailBuilder.Rtf = new TextRange(this.textRichTextBox.Document.ContentStart,
-                   this.textRichTextBox.Document.ContentEnd).Text;
-            }
-            else
-            {
-                string data = new TextRange(this.textRichTextBox.Document.ContentStart,
-                   this.textRichTextBox.Document.ContentEnd).Text;
-                Encoding encoding = Encoding.GetEncoding(Encoding.UTF8.CodePage);
-                byte[] encrData = Encrypter.EncryptWithAesAndRsa(encoding.GetBytes(data),
-                    this.EmailBox.UserKeyContainerName);
-                byte[] signedData = Encrypter.SignData(encrData,
-                    this.EmailBox.UserKeyContainerName);
-                string encString = String.Empty;
-
-                for (int i = 0; i < signedData.Length; i += 2)
-                {
-                    encString += BitConverter.ToChar(signedData, i);
-                }
-
-                mailBuilder.Rtf = encString;
-            }
+            mailBuilder.Subject = this.subjectTextBox.Text;
+            mailBuilder.Rtf = this.GetRtfTextFromRichTextBoxText(this.textRichTextBox);
 
             for (int i = 0; i < this.Attachments.Count; i++)
             {
-                MimeData mime;
+                byte[] data = this.Attachments[i];
+                byte[] encData = Encrypter.EncryptWithAesAndRsa(data,
+                    this.EmailBox.UserKeyContainerName);
+                byte[] signedData = Encrypter.SignData(encData,
+                    this.EmailBox.UserKeyContainerName);
 
-                if (this.encryptMessage.IsChecked == false)
-                {
-                    mime = mailBuilder.AddAttachment(this.Attachments[i]);
-                }
-                else
-                {
-                    byte[] data = this.Attachments[i];
-                    byte[] encrData = Encrypter.EncryptWithAesAndRsa(data,
-                        this.EmailBox.UserKeyContainerName);
-                    byte[] signedData = Encrypter.SignData(encrData, 
-                        this.EmailBox.UserKeyContainerName);
-                    mime = mailBuilder.AddAttachment(signedData);
-                }
-
+                MimeData mime = mailBuilder.AddAttachment(signedData);
                 mime.FileName = (string)this.attachmentsListBox.Items[i];
             }
 
@@ -189,6 +147,36 @@ namespace MailClient
                 sendThread.Abort();
                 sendThread.Join();
             }
+        }
+
+        private string GetRtfTextFromRichTextBoxText(RichTextBox richTextBox)
+        {
+            TextRange documentTextRange = new TextRange(
+                richTextBox.Document.ContentStart, richTextBox.Document.ContentEnd);
+
+            using (FileStream fs = File.Create(MainWindow.UserDirectoryPath + "tmp.rtf"))
+            {
+                documentTextRange.Save(fs, DataFormats.Rtf);
+            }
+
+            string str = File.ReadAllText(MainWindow.UserDirectoryPath + "tmp.rtf");
+            File.Delete(MainWindow.UserDirectoryPath + "tmp.rtf");
+            return str;
+        }
+
+        private byte[] GetBytesFromRichTextBoxText(RichTextBox richTextBox)
+        {
+            TextRange documentTextRange = new TextRange(
+                richTextBox.Document.ContentStart, richTextBox.Document.ContentEnd);
+
+            using (FileStream fs = File.Create(MainWindow.UserDirectoryPath + "tmp.rtf"))
+            {
+                documentTextRange.Save(fs, DataFormats.Rtf);
+            }
+
+            byte[] bytes = File.ReadAllBytes(MainWindow.UserDirectoryPath + "tmp.rtf");
+            File.Delete(MainWindow.UserDirectoryPath + "tmp.rtf");
+            return bytes;
         }
     }
 }

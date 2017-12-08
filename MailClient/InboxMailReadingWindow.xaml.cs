@@ -1,8 +1,10 @@
 ﻿using Limilabs.Mail;
 using Limilabs.Mail.Headers;
 using Limilabs.Mail.MIME;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -60,12 +62,18 @@ namespace MailClient
 
                 this.subjectTextBox.Text = this.Message.Subject;
 
-                if (this.Message.IsText)
+                if (this.Message.IsText && !this.Message.IsRtf)
+                {
                     this.textRichTextBox.AppendText(this.Message.Text);
+                }
                 else if (this.Message.IsRtf)
-                    this.textRichTextBox.AppendText(this.Message.Rtf);
+                {
+                    this.SetRtfTextToRichTextBox(this.Message.Rtf, this.textRichTextBox);
+                }
                 else if (this.Message.IsHtml)
-                    this.textRichTextBox.AppendText("Это письмо содержит html. К сожалению, его отображение не поддерживается.");
+                {
+                    this.textRichTextBox.AppendText(this.Message.GetTextFromHtml());
+                } 
 
                 foreach (MimeData item in this.Message.Attachments)
                 {
@@ -84,22 +92,74 @@ namespace MailClient
             }
         }
 
-        private void DecryptMessage_Checked(object sender, RoutedEventArgs e)
+        private void SetRtfTextToRichTextBox(string message, RichTextBox richTextBox)
         {
-            char[] rtfText = this.Message.Rtf.ToCharArray();
-            //Encoding encoding = Encoding.GetEncoding(Encoding.UTF8.CodePage);
+            File.WriteAllText(MainWindow.UserDirectoryPath + "tmp.rtf", message);
 
-            List<byte> data = new List<byte>();
+            TextRange tr = new TextRange(richTextBox.Document.ContentStart,
+                richTextBox.Document.ContentEnd);
 
-            for (int i = 0; i < rtfText.Length; i++)
+            using (FileStream fs = File.Open(MainWindow.UserDirectoryPath + "tmp.rtf", FileMode.Open))
             {
-                byte[] charBytes = BitConverter.GetBytes(rtfText[i]);
-                data.AddRange(charBytes);
+                tr.Load(fs, DataFormats.Rtf);
             }
 
-            if (Encrypter.CheckSign(data.ToArray(),
-                this.EmailBox.UserKeyContainerName))
-                MessageBox.Show("Ebat' ti molodec");
+            File.Delete(MainWindow.UserDirectoryPath + "tmp.rtf");
+        }
+
+        private void SaveAttachmentsButton_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog()
+            {
+                Title = "Сохранить файл",
+                FileName = (string)this.attachmentsListBox.SelectedItem,
+                Filter = "Все файлы (*.*)|*.*"
+            };
+            if (sfd.ShowDialog() == true)
+            {
+                if (this.decryptMessage.IsChecked == true)
+                {
+                    byte[] encDataWithHash = this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data; ;
+                    bool signTrue = false;
+                    try
+                    {
+                        signTrue = Encrypter.CheckSign(encDataWithHash, this.EmailBox.UserKeyContainerName);
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Подпись файла отсутствует!", "Ошибка",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    if (!signTrue)
+                    {
+                        MessageBox.Show("Подпись файла не совпадает!", "Ошибка",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                    byte[] decData;
+
+                    try
+                    {
+                        byte[] encData = Encrypter.ReturnDataWithoutHash(encDataWithHash);
+                        decData = Encrypter.DecryptWithAesAndRsa(encData, this.EmailBox.UserKeyContainerName);
+                    }
+                    catch (Exception)
+                    {
+                        MessageBox.Show("Данные повреждены!", "Ошибка",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    File.WriteAllBytes(sfd.FileName, decData);
+                }
+                else
+                {
+                    File.WriteAllBytes(sfd.FileName, 
+                        this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data);
+                }
+            }
         }
     }
 }

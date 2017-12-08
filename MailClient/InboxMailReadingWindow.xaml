@@ -25,7 +25,8 @@
                 <RowDefinition/>
                 <RowDefinition Height="150"/>
             </Grid.RowDefinitions>
-            <RichTextBox Grid.Row="0" x:Name="textRichTextBox" IsReadOnly="True"  ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            <RichTextBox Grid.Row="0" x:Name="textRichTextBox" IsReadOnly="True" 
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="24"/>
@@ -34,10 +35,12 @@
                     <RowDefinition Height="24"/>
                 </Grid.RowDefinitions>
                 <Label Grid.Row="0" Content="Приложения:"/>
-                <ListBox x:Name="attachmentsListBox" Grid.Row="1" Margin="0, 0, 0, 5" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
-                <CheckBox Grid.Row="2" x:Name="decryptMessage" Content="Расшифровать сообщение" VerticalAlignment="Center" Checked="DecryptMessage_Checked"/>
+                <ListBox x:Name="attachmentsListBox" Grid.Row="1" Margin="0, 0, 0, 5"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                <CheckBox Grid.Row="2" x:Name="decryptMessage" Content="Расшифровать сообщение"
+                          VerticalAlignment="Center"/>
                 <Button x:Name="saveAttachmentsButton" Grid.Row="3" HorizontalAlignment="Left"
-                        Content="Сохранить" Width="100"/>
+                        Content="Сохранить" Width="100" Click="SaveAttachmentsButton_Click"/>
             </Grid>
         </Grid>
     </Grid>

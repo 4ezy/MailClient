@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MailClient;
 using System.IO;
 using System.Collections.Generic;
+using System.Text;
 
 namespace MailClientTests
 {
@@ -23,7 +24,7 @@ namespace MailClientTests
         {
             EmailBox emailBox = new EmailBox("aksonov10@gmail.com", "Db64ce15345", "imap.gmail.com",
                 993, "smtp.gmail.com", 465);
-            emailBox.DownloadInboxMessages(0, 5);
+            //emailBox.DownloadInboxMessages(0, 5);
             Assert.IsNotNull(emailBox.Inbox);
         }
 
@@ -47,6 +48,38 @@ namespace MailClientTests
         {
             int[] list = new int[5];
             list[4] = 4;
+        }
+
+        [TestMethod]
+        public void SignCheck()
+        {
+            string data = "123";
+            Encoding encoding = Encoding.GetEncoding(Encoding.UTF8.CodePage);
+            byte[] encrData = Encrypter.EncryptWithAesAndRsa(encoding.GetBytes(data),
+                "vasya");
+            byte[] signedData = Encrypter.SignData(encrData,
+                    "vasya");
+            string encString = String.Empty;
+
+            for (int i = 0; i < signedData.Length; i += 2)
+            {
+                encString += BitConverter.ToChar(signedData, i);
+            }
+
+            char[] rtfText = encString.ToCharArray();
+            List<byte> dat = new List<byte>();
+
+            for (int i = 0; i < rtfText.Length; i++)
+            {
+                byte[] charBytes = BitConverter.GetBytes(rtfText[i]);
+                dat.AddRange(charBytes);
+            }
+
+            bool actual = Encrypter.CheckSign(dat.ToArray(),
+                "vasya");
+            bool expected = true;
+
+            Assert.AreEqual(expected, actual);
         }
     }
 }

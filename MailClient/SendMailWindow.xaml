@@ -36,7 +36,8 @@
                     </Button>
                 </ToolBar>
                 <RichTextBox Grid.Row="1" x:Name="textRichTextBox"
-                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"
+                         AcceptsTab="True" AcceptsReturn="True"/>
             </Grid>
             <Grid Grid.Row="1">
                 <Grid.RowDefinitions>
