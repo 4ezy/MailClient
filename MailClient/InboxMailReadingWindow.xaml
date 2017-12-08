@@ -38,7 +38,7 @@
                 <ListBox x:Name="attachmentsListBox" Grid.Row="1" Margin="0, 0, 0, 5"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"/>
                 <CheckBox Grid.Row="2" x:Name="decryptMessage" Content="Расшифровать сообщение"
-                          VerticalAlignment="Center"/>
+                          VerticalAlignment="Center" Click="DecryptMessage_Click"/>
                 <Button x:Name="saveAttachmentsButton" Grid.Row="3" HorizontalAlignment="Left"
                         Content="Сохранить" Width="100" Click="SaveAttachmentsButton_Click"/>
             </Grid>

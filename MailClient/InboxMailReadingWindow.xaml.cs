@@ -107,6 +107,21 @@ namespace MailClient
             File.Delete(MainWindow.UserDirectoryPath + "tmp.rtf");
         }
 
+        private void SetRtfTextToRichTextBox(byte[] data, RichTextBox richTextBox)
+        {
+            File.WriteAllBytes(MainWindow.UserDirectoryPath + "tmp.rtf", data);
+
+            TextRange tr = new TextRange(richTextBox.Document.ContentStart,
+                richTextBox.Document.ContentEnd);
+
+            using (FileStream fs = File.Open(MainWindow.UserDirectoryPath + "tmp.rtf", FileMode.Open))
+            {
+                tr.Load(fs, DataFormats.Rtf);
+            }
+
+            File.Delete(MainWindow.UserDirectoryPath + "tmp.rtf");
+        }
+
         private void SaveAttachmentsButton_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog()
@@ -160,6 +175,46 @@ namespace MailClient
                         this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data);
                 }
             }
+        }
+
+        private void DecryptMessage_Click(object sender, RoutedEventArgs e)
+        {
+            byte[] signData = Convert.FromBase64String(this.Message.Rtf);
+
+            bool signTrue = false;
+            try
+            {
+                signTrue = Encrypter.CheckSign(signData, this.EmailBox.UserKeyContainerName);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Подпись файла отсутствует!", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (!signTrue)
+            {
+                MessageBox.Show("Подпись файла не совпадает!", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            byte[] decData;
+
+            try
+            {
+                byte[] encData = Encrypter.ReturnDataWithoutHash(signData);
+                decData = Encrypter.DecryptWithAesAndRsa(encData, this.EmailBox.UserKeyContainerName);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Данные повреждены!", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            this.SetRtfTextToRichTextBox(decData, this.textRichTextBox);
         }
     }
 }

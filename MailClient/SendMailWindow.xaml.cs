@@ -95,20 +95,40 @@ namespace MailClient
             mailBuilder.From.Add(new MailBox(this.EmailBox.EmailAddress));
             mailBuilder.To.Add(new MailBox(this.toTextBox.Text.Trim(' ')));
             mailBuilder.Subject = this.subjectTextBox.Text;
-            mailBuilder.Rtf = this.GetRtfTextFromRichTextBoxText(this.textRichTextBox);
 
-            for (int i = 0; i < this.Attachments.Count; i++)
+            if (encryptMessage.IsChecked == true)
             {
-                byte[] data = this.Attachments[i];
+                byte[] data = this.GetBytesFromRichTextBoxText(this.textRichTextBox);
                 byte[] encData = Encrypter.EncryptWithAesAndRsa(data,
                     this.EmailBox.UserKeyContainerName);
                 byte[] signedData = Encrypter.SignData(encData,
                     this.EmailBox.UserKeyContainerName);
-
-                MimeData mime = mailBuilder.AddAttachment(signedData);
-                mime.FileName = (string)this.attachmentsListBox.Items[i];
+                mailBuilder.Rtf = Convert.ToBase64String(signedData);
+            }
+            else
+            {
+                mailBuilder.Rtf = this.GetRtfTextFromRichTextBoxText(this.textRichTextBox);
             }
 
+            for (int i = 0; i < this.Attachments.Count; i++)
+            {
+                if (encryptMessage.IsChecked == true)
+                {
+                    byte[] data = this.Attachments[i];
+                    byte[] encData = Encrypter.EncryptWithAesAndRsa(data,
+                        this.EmailBox.UserKeyContainerName);
+                    byte[] signedData = Encrypter.SignData(encData,
+                        this.EmailBox.UserKeyContainerName);
+
+                    MimeData mime = mailBuilder.AddAttachment(signedData);
+                    mime.FileName = (string)this.attachmentsListBox.Items[i];
+                }
+                else
+                {
+                    MimeData mime = mailBuilder.AddAttachment(this.Attachments[i]);
+                    mime.FileName = (string)this.attachmentsListBox.Items[i];
+                }
+            }
             IMail mail = mailBuilder.Create();
 
             if (sendThread != null && sendThread.IsAlive)
