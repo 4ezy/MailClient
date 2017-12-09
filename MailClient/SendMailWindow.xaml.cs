@@ -93,8 +93,19 @@ namespace MailClient
 
             MailBuilder mailBuilder = new MailBuilder();
             mailBuilder.From.Add(new MailBox(this.EmailBox.EmailAddress));
-            mailBuilder.To.Add(new MailBox(this.toTextBox.Text.Trim(' ')));
-            mailBuilder.Subject = this.subjectTextBox.Text;
+
+            try
+            {
+                mailBuilder.To.Add(new MailBox(this.toTextBox.Text.Trim(' ')));
+            }
+            catch (ArgumentException)
+            {
+                MessageBox.Show("Имя получателя написано в неверном формате.", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            mailBuilder.Subject = this.subjectTextBox.Text.Trim(' ');
 
             if (encryptMessage.IsChecked == true)
             {
@@ -107,7 +118,7 @@ namespace MailClient
             }
             else
             {
-                mailBuilder.Rtf = this.GetRtfTextFromRichTextBoxText(this.textRichTextBox);
+                mailBuilder.Rtf = this.GetTextFromRichTextBox(this.textRichTextBox);
             }
 
             for (int i = 0; i < this.Attachments.Count; i++)
@@ -129,6 +140,7 @@ namespace MailClient
                     mime.FileName = (string)this.attachmentsListBox.Items[i];
                 }
             }
+
             IMail mail = mailBuilder.Create();
 
             if (sendThread != null && sendThread.IsAlive)
@@ -141,6 +153,7 @@ namespace MailClient
             {
                 this.Dispatcher.Invoke(() =>
                 {
+                    this.sendButton.IsEnabled = false;
                     Mouse.OverrideCursor = Cursors.AppStarting;
                 });
 
@@ -149,6 +162,7 @@ namespace MailClient
                 this.Dispatcher.Invoke(() =>
                 {
                     this.Close();
+                    this.sendButton.IsEnabled = true;
                     Mouse.OverrideCursor = null;
                 });
             });
@@ -169,7 +183,7 @@ namespace MailClient
             }
         }
 
-        private string GetRtfTextFromRichTextBoxText(RichTextBox richTextBox)
+        private string GetTextFromRichTextBox(RichTextBox richTextBox)
         {
             TextRange documentTextRange = new TextRange(
                 richTextBox.Document.ContentStart, richTextBox.Document.ContentEnd);

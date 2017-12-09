@@ -56,19 +56,19 @@ namespace MailClient
                         fromString += ", ";
                 }
 
-                this.fromTextBox.Text = fromString;
+                this.fromTextBox.Text = fromString.Trim(' ');
 
                 this.dateTextBox.Text = this.Message.Date.ToString();
 
                 this.subjectTextBox.Text = this.Message.Subject;
 
-                if (this.Message.IsText && !this.Message.IsRtf)
+                if (this.Message.IsText)
                 {
                     this.textRichTextBox.AppendText(this.Message.Text);
                 }
                 else if (this.Message.IsRtf)
                 {
-                    this.SetRtfTextToRichTextBox(this.Message.Rtf, this.textRichTextBox);
+                    this.SetStringRtfToRichTextBox(this.Message.Rtf, this.textRichTextBox);
                 }
                 else if (this.Message.IsHtml)
                 {
@@ -92,7 +92,7 @@ namespace MailClient
             }
         }
 
-        private void SetRtfTextToRichTextBox(string message, RichTextBox richTextBox)
+        private void SetStringRtfToRichTextBox(string message, RichTextBox richTextBox)
         {
             File.WriteAllText(MainWindow.UserDirectoryPath + "tmp.rtf", message);
 
@@ -107,7 +107,7 @@ namespace MailClient
             File.Delete(MainWindow.UserDirectoryPath + "tmp.rtf");
         }
 
-        private void SetRtfTextToRichTextBox(byte[] data, RichTextBox richTextBox)
+        private void SetByteRtfToRichTextBox(byte[] data, RichTextBox richTextBox)
         {
             File.WriteAllBytes(MainWindow.UserDirectoryPath + "tmp.rtf", data);
 
@@ -134,40 +134,10 @@ namespace MailClient
             {
                 if (this.decryptMessage.IsChecked == true)
                 {
-                    byte[] encDataWithHash = this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data; ;
-                    bool signTrue = false;
-                    try
-                    {
-                        signTrue = Encrypter.CheckSign(encDataWithHash, this.EmailBox.UserKeyContainerName);
-                    }
-                    catch (Exception)
-                    {
-                        MessageBox.Show("Подпись файла отсутствует!", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-
-                    if (!signTrue)
-                    {
-                        MessageBox.Show("Подпись файла не совпадает!", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                    byte[] decData;
-
-                    try
-                    {
-                        byte[] encData = Encrypter.ReturnDataWithoutHash(encDataWithHash);
-                        decData = Encrypter.DecryptWithAesAndRsa(encData, this.EmailBox.UserKeyContainerName);
-                    }
-                    catch (Exception)
-                    {
-                        MessageBox.Show("Данные повреждены!", "Ошибка",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-
-                    File.WriteAllBytes(sfd.FileName, decData);
+                    byte[] signData = this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data; ;
+                    byte[] decData = this.TryDecryptData(signData);
+                    if (!decData.Equals(signData))
+                        File.WriteAllBytes(sfd.FileName, decData);
                 }
                 else
                 {
@@ -179,42 +149,79 @@ namespace MailClient
 
         private void DecryptMessage_Click(object sender, RoutedEventArgs e)
         {
-            byte[] signData = Convert.FromBase64String(this.Message.Rtf);
+            if (decryptMessage.IsChecked == true)
+            {
+                if (this.Message.IsText)
+                {
+                    MessageBox.Show("Шифрование обычного текста не поддерживается", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else if (this.Message.IsRtf)
+                {
+                    byte[] signData = Convert.FromBase64String(this.Message.Rtf);
+                    byte[] decData = this.TryDecryptData(signData);
+                    if (!decData.Equals(signData))
+                        this.SetByteRtfToRichTextBox(decData, this.textRichTextBox);
+                }
+                else if (this.Message.IsHtml)
+                {
+                    MessageBox.Show("Шифрование HTML страниц не поддерживается", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                if (this.Message.IsText)
+                {
+                    this.textRichTextBox.AppendText(this.Message.Text);
+                }
+                else if (this.Message.IsRtf)
+                {
+                    this.SetStringRtfToRichTextBox(this.Message.Rtf, this.textRichTextBox);
+                }
+                else if (this.Message.IsHtml)
+                {
+                    this.textRichTextBox.AppendText(this.Message.GetTextFromHtml());
+                }
+            }
+        }
 
+        private byte[] TryDecryptData(byte[] data)
+        {
             bool signTrue = false;
             try
             {
-                signTrue = Encrypter.CheckSign(signData, this.EmailBox.UserKeyContainerName);
+                signTrue = Encrypter.CheckSign(data, this.EmailBox.UserKeyContainerName);
             }
             catch (Exception)
             {
-                MessageBox.Show("Подпись файла отсутствует!", "Ошибка",
+                MessageBox.Show("Подпись данных повреждена или отсутствует!", "Ошибка",
                     MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                return data;
             }
 
             if (!signTrue)
             {
                 MessageBox.Show("Подпись файла не совпадает!", "Ошибка",
                     MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                return data;
             }
 
             byte[] decData;
 
             try
             {
-                byte[] encData = Encrypter.ReturnDataWithoutHash(signData);
+                byte[] encData = Encrypter.ReturnDataWithoutHash(data);
                 decData = Encrypter.DecryptWithAesAndRsa(encData, this.EmailBox.UserKeyContainerName);
             }
             catch (Exception)
             {
                 MessageBox.Show("Данные повреждены!", "Ошибка",
                     MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                return data;
             }
 
-            this.SetRtfTextToRichTextBox(decData, this.textRichTextBox);
+            return decData;
         }
     }
 }

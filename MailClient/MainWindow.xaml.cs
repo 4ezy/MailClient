@@ -45,17 +45,6 @@ namespace MailClient
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             this.MailClientInitializationData();
-
-            //if (this.CurrentUser.SelectedEmailBoxIndex != -1)
-            //{
-            //    Mouse.OverrideCursor = Cursors.Wait;
-            //    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
-            //    Mouse.OverrideCursor = null;
-            //    this.messagesOffset = 0;
-            //    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectFull();
-            //    this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
-            //    this.DownloadMessagesToClient(messagesType);
-            //}
         }
 
         private void OptionsMenuItem_Click(object sender, RoutedEventArgs e)
@@ -71,12 +60,6 @@ namespace MailClient
             {
                 Owner = this
             };
-
-            //AppOptionsWindow optionsWindow = new AppOptionsWindow(this.CurrentUser)
-            //{
-            //    Owner = this,
-            //    User = (User)this.CurrentUser.Clone()
-            //};
             optionsWindow.ShowDialog();
             
             if (!this.CurrentUser.Equals(optionsWindow.User))
@@ -110,7 +93,6 @@ namespace MailClient
                 this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
                 Mouse.OverrideCursor = null;
                 this.messagesOffset = 0;
-                //this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectFull();
                 this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
                 this.DownloadMessagesToClient(messagesType);
             }
@@ -451,8 +433,6 @@ namespace MailClient
                     }
 
                     this.messagesOffset = 0;
-                    //this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(this.messagesType);
-                    //this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
                     this.DownloadMessagesToClient(messagesType);
                 }
             }
@@ -498,6 +478,10 @@ namespace MailClient
                             Owner = this
                         };
                         inboxMailReadingWindow.Show();
+                        inboxMailReadingWindow.Closed += ((object sndr, EventArgs evArg) =>
+                        {
+                            this.DownloadMessagesToClient(this.messagesType);
+                        });
                         break;
                     case MessagesType.Sent:
                         IMail sentMail = this.CurrentUser.EmailBoxes[
@@ -507,6 +491,10 @@ namespace MailClient
                             Owner = this
                         };
                         sentMailReadingWindow.Show();
+                        sentMailReadingWindow.Closed += ((object sndr, EventArgs evArg) =>
+                        {
+                            this.DownloadMessagesToClient(this.messagesType);
+                        });
                         break;
                     case MessagesType.Drafts:
                         break;
@@ -518,6 +506,10 @@ namespace MailClient
                             Owner = this
                         };
                         basketMailReadingWindow.Show();
+                        basketMailReadingWindow.Closed += ((object sndr, EventArgs evArg) =>
+                        {
+                            this.DownloadMessagesToClient(this.messagesType);
+                        });
                         break;
                     default:
                         break;
@@ -527,12 +519,6 @@ namespace MailClient
 
         private void WriteMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (inboxThread != null && inboxThread.IsAlive)
-            {
-                inboxThread.Abort();
-                inboxThread.Join();
-            }
-
             if (this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Smtp == null ||
                 !this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Smtp.Connected)
             {
@@ -546,7 +532,20 @@ namespace MailClient
                 Owner = this
             };
             sendMailWindow.Show();
-            //this.DownloadMessagesToClient(this.messagesType);
+            sendMailWindow.Closed += ((object sndr, EventArgs evArg) =>
+            {
+                this.DownloadMessagesToClient(this.messagesType);
+            });
+        }
+
+        private void ExportPublicKeyMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ImportPublicKeyMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

@@ -8,6 +8,7 @@ using Limilabs.Client.SMTP;
 using Limilabs.Mail;
 using Limilabs.Client;
 using Limilabs.Mail.Headers;
+using System.Security.Cryptography;
 
 namespace MailClient
 {

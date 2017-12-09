@@ -17,6 +17,10 @@
         </Grid.RowDefinitions>
         <Menu Grid.Row="0">
             <MenuItem x:Name="writeMenuItem" Header="Написать" Click="WriteMenuItem_Click"/>
+            <MenuItem Header="Открытый ключ">
+                <MenuItem x:Name="exportPublicKeyMenuItem" Header="Экспорт своего..." Click="ExportPublicKeyMenuItem_Click"/>
+                <MenuItem x:Name="importPublicKeyMenuItem" Header="Импорт чужого..." Click="ImportPublicKeyMenuItem_Click"/>
+            </MenuItem>
             <MenuItem x:Name="optionsMenuItem" Header="Учётная запись" Click="OptionsMenuItem_Click"/>
             <MenuItem x:Name="exitMenuItem" Header="Выход" Click="ExitMenuItem_Click"/>
         </Menu>
