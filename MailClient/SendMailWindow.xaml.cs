@@ -84,6 +84,14 @@ namespace MailClient
 
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.encryptMessage.IsChecked == true &&
+                this.EmailBox.XmlStringChipherKeyContainerName is null)
+            {
+                MessageBox.Show("Для шифрования сообщения следует импортировать открытый ключ!", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             if (this.toTextBox.Text is null)
             {
                 MessageBox.Show("Требуется ввести имя получателя.", "Ошибка",
@@ -111,7 +119,7 @@ namespace MailClient
             {
                 byte[] data = this.GetBytesFromRichTextBoxText(this.textRichTextBox);
                 byte[] encData = Encrypter.EncryptWithAesAndRsa(data,
-                    this.EmailBox.UserKeyContainerName);
+                    this.EmailBox.XmlStringChipherKeyContainerName, true);
                 byte[] signedData = Encrypter.SignData(encData,
                     this.EmailBox.UserKeyContainerName);
                 mailBuilder.Rtf = Convert.ToBase64String(signedData);
@@ -127,7 +135,7 @@ namespace MailClient
                 {
                     byte[] data = this.Attachments[i];
                     byte[] encData = Encrypter.EncryptWithAesAndRsa(data,
-                        this.EmailBox.UserKeyContainerName);
+                        this.EmailBox.XmlStringChipherKeyContainerName, true);
                     byte[] signedData = Encrypter.SignData(encData,
                         this.EmailBox.UserKeyContainerName);
 

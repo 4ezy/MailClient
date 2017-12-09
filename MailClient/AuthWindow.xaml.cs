@@ -36,7 +36,7 @@ namespace MailClient
             if (this.AuthUser != null)
             {
                 byte[] serData = BinarySerializer.Serialize(this.AuthUser);
-                byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
+                byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName, false);
                 File.WriteAllBytes(MainWindow.UserDirectoryPath + this.AuthUser.Login + ".mcd", encSerData);
                 this.Close();
             }            
@@ -48,7 +48,7 @@ namespace MailClient
             {
                 byte[] userEncryptedData = File.ReadAllBytes(MainWindow.UserDirectoryPath +
                     this.loginTextBox.Text + ".mcd");
-                byte[] userData = Encrypter.DecryptWithAesAndRsa(userEncryptedData, Encrypter.DefaultKeyContainerName);
+                byte[] userData = Encrypter.DecryptWithAesAndRsa(userEncryptedData, Encrypter.DefaultKeyContainerName, false);
                 User user = BinarySerializer.Deserialize<User>(userData);
 
                 if (user.Password == this.passwordTextBox.Password)
@@ -58,7 +58,7 @@ namespace MailClient
                     if (this.remeberMeCheckBox.IsChecked == true)
                     {
                         byte[] serData = BinarySerializer.Serialize(user.Login);
-                        byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
+                        byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName, false);
                         File.WriteAllBytes(MainWindow.RememberMeDataPath, encSerData);
                     }
 

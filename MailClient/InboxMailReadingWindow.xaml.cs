@@ -151,6 +151,14 @@ namespace MailClient
         {
             if (decryptMessage.IsChecked == true)
             {
+                if (this.EmailBox.XmlStringSignKeyContainerName is null)
+                {
+                    MessageBox.Show("Для проверки подписи сообщения" +
+                        " следует импортировать открытый ключ!", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
                 if (this.Message.IsText)
                 {
                     MessageBox.Show("Шифрование обычного текста не поддерживается", "Ошибка",
@@ -191,7 +199,7 @@ namespace MailClient
             bool signTrue = false;
             try
             {
-                signTrue = Encrypter.CheckSign(data, this.EmailBox.UserKeyContainerName);
+                signTrue = Encrypter.CheckSign(data, this.EmailBox.XmlStringSignKeyContainerName);
             }
             catch (Exception)
             {
@@ -212,7 +220,7 @@ namespace MailClient
             try
             {
                 byte[] encData = Encrypter.ReturnDataWithoutHash(data);
-                decData = Encrypter.DecryptWithAesAndRsa(encData, this.EmailBox.UserKeyContainerName);
+                decData = Encrypter.DecryptWithAesAndRsa(encData, this.EmailBox.UserKeyContainerName, false);
             }
             catch (Exception)
             {

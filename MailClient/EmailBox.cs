@@ -27,6 +27,14 @@ namespace MailClient
         public string UserKeyContainerName { get => userKeyContainerName; }
 
         [NonSerialized]
+        private string xmlStringChipherKeyContainerName;
+        public string XmlStringChipherKeyContainerName { get => xmlStringChipherKeyContainerName; set => xmlStringChipherKeyContainerName = value; }
+
+        [NonSerialized]
+        private string xmlStringSignKeyContainerName;
+        public string XmlStringSignKeyContainerName { get => xmlStringSignKeyContainerName; set => xmlStringSignKeyContainerName = value; }
+
+        [NonSerialized]
         private Imap imap;
 
         public Imap Imap

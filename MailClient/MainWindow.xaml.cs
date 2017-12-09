@@ -1,10 +1,12 @@
 ﻿using Limilabs.Client;
 using Limilabs.Client.IMAP;
 using Limilabs.Mail;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,11 +92,11 @@ namespace MailClient
             if (this.CurrentUser.SelectedEmailBoxIndex != -1)
             {
                 Mouse.OverrideCursor = Cursors.Wait;
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
+                //this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectImap();
                 Mouse.OverrideCursor = null;
                 this.messagesOffset = 0;
-                this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
-                this.DownloadMessagesToClient(messagesType);
+                //this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ChangeFolder(messagesType);
+                //this.DownloadMessagesToClient(messagesType);
             }
         }
 
@@ -165,13 +167,13 @@ namespace MailClient
             if (File.Exists(MainWindow.RememberMeDataPath))
             {
                 byte[] encryptedRememberMeData = File.ReadAllBytes(MainWindow.RememberMeDataPath);
-                byte[] rememberMeData = Encrypter.DecryptWithAesAndRsa(encryptedRememberMeData, Encrypter.DefaultKeyContainerName);
+                byte[] rememberMeData = Encrypter.DecryptWithAesAndRsa(encryptedRememberMeData, Encrypter.DefaultKeyContainerName, false);
                 string rememberMeLogin = BinarySerializer.Deserialize<string>(rememberMeData);
 
                 if (File.Exists(MainWindow.UserDirectoryPath + rememberMeLogin + ".mcd"))
                 {
                     byte[] encryptedUserData = File.ReadAllBytes(MainWindow.UserDirectoryPath + rememberMeLogin + ".mcd");
-                    byte[] userData = Encrypter.DecryptWithAesAndRsa(encryptedUserData, Encrypter.DefaultKeyContainerName);
+                    byte[] userData = Encrypter.DecryptWithAesAndRsa(encryptedUserData, Encrypter.DefaultKeyContainerName, false);
                     this.CurrentUser = BinarySerializer.Deserialize<User>(userData);
                 }
                 else
@@ -188,7 +190,7 @@ namespace MailClient
         private void EncryptAndSerializeCurrentUser()
         {
             byte[] serData = BinarySerializer.Serialize(this.CurrentUser);
-            byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName);
+            byte[] encSerData = Encrypter.EncryptWithAesAndRsa(serData, Encrypter.DefaultKeyContainerName, false);
             File.WriteAllBytes(MainWindow.UserDirectoryPath + this.CurrentUser.Login + ".mcd", encSerData);
         }
 
@@ -538,14 +540,87 @@ namespace MailClient
             });
         }
 
-        private void ExportPublicKeyMenuItem_Click(object sender, RoutedEventArgs e)
+        private void ImportPublicCipherKeyMenuItem_Click(object sender, RoutedEventArgs e)
         {
-
+            OpenFileDialog ofd = new OpenFileDialog()
+            {
+                Title = "Импорт открытого ключа шифрования",
+                Filter = "Открытый ключ шифрования (*.pubkc)|*.pubkc",
+            };
+            if (ofd.ShowDialog() == true)
+            {
+                string publicKey = File.ReadAllText(ofd.FileName);
+                this.CurrentUser.EmailBoxes[
+                            this.CurrentUser.SelectedEmailBoxIndex].XmlStringChipherKeyContainerName = publicKey;
+            }
         }
 
-        private void ImportPublicKeyMenuItem_Click(object sender, RoutedEventArgs e)
+        private void ImportPublicSignKeyMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            OpenFileDialog ofd = new OpenFileDialog()
+            {
+                Title = "Импорт открытого ключа подписи",
+                Filter = "Открытый ключ подписи (*.pubks)|*.pubks",
+            };
+            if (ofd.ShowDialog() == true)
+            {
+                string publicKey = File.ReadAllText(ofd.FileName);
+                this.CurrentUser.EmailBoxes[
+                            this.CurrentUser.SelectedEmailBoxIndex].XmlStringSignKeyContainerName = publicKey;
+            }
+        }
 
+        private void ExportPublicCipherKeyMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog()
+            {
+                Title = "Экспорт открытого ключа шифрования",
+                Filter = "Открытый ключ шифрования (*.pubkc)|*.pubkc",
+                FileName = this.CurrentUser.EmailBoxes[
+                    this.CurrentUser.SelectedEmailBoxIndex].EmailAddress + ".pubkc",
+            };
+            if (sfd.ShowDialog() == true)
+            {
+                CspParameters cspp = new CspParameters
+                {
+                    KeyContainerName = this.CurrentUser.EmailBoxes[
+                        this.CurrentUser.SelectedEmailBoxIndex].UserKeyContainerName
+                };
+                RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(cspp);
+                string publicKey = rsa.ToXmlString(false);
+                File.WriteAllText(sfd.FileName, publicKey);
+            }
+        }
+
+        private void ExportPublicSignKeyMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog()
+            {
+                Title = "Экспорт открытого ключа подписи",
+                Filter = "Открытый ключ подписи (*.pubks)|*.pubks",
+                FileName = this.CurrentUser.EmailBoxes[
+                    this.CurrentUser.SelectedEmailBoxIndex].EmailAddress + ".pubks",
+            };
+            if (sfd.ShowDialog() == true)
+            {
+                DSACryptoServiceProvider dsa = new DSACryptoServiceProvider();
+
+                if (!File.Exists(MainWindow.UserDirectoryPath + this.CurrentUser.EmailBoxes[
+                    this.CurrentUser.SelectedEmailBoxIndex].UserKeyContainerName + ".akey"))
+                {
+                    File.WriteAllText(MainWindow.UserDirectoryPath + this.CurrentUser.EmailBoxes[
+                        this.CurrentUser.SelectedEmailBoxIndex].UserKeyContainerName + ".akey",
+                        dsa.ToXmlString(true));
+                }
+                else
+                {
+                    dsa.FromXmlString(File.ReadAllText(
+                    MainWindow.UserDirectoryPath + this.CurrentUser.EmailBoxes[
+                        this.CurrentUser.SelectedEmailBoxIndex].UserKeyContainerName + ".akey"));
+                }
+
+                File.WriteAllText(sfd.FileName, dsa.ToXmlString(false));
+            }
         }
     }
 }

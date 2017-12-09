@@ -13,17 +13,23 @@ namespace MailClient
         private static readonly string defaultKeyContainerName = "FileKeyContainer";
         public static string DefaultKeyContainerName => defaultKeyContainerName;
 
-        //public static readonly byte[] DefaultKey = new byte[] { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-        //    0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16 };
-        //public static readonly byte[] DefaultIV = new byte[] { 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27,
-        //    0x28, 0x29, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35 };
-
-        public static byte[] EncryptWithAesAndRsa(byte[] data, string keyContainerName)
+        public static byte[] EncryptWithAesAndRsa(byte[] data, string keyContainerName, bool isXmlString)
         {
             AesCryptoServiceProvider aes = new AesCryptoServiceProvider() { Mode = CipherMode.CBC };
             ICryptoTransform ct = aes.CreateEncryptor();
-            CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName };
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(cspp);
+            RSACryptoServiceProvider rsa;
+
+            if (!isXmlString)
+            {
+                CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName };
+                rsa = new RSACryptoServiceProvider(cspp);
+            }
+            else
+            {
+                rsa = new RSACryptoServiceProvider();
+                rsa.FromXmlString(keyContainerName);
+            }
+
             byte[] keyEncrypted = rsa.Encrypt(aes.Key, false);
             byte[] keyLength = BitConverter.GetBytes(keyEncrypted.Length);
             byte[] ivLength = BitConverter.GetBytes(aes.IV.Length);
@@ -53,10 +59,20 @@ namespace MailClient
             return encryptedData;
         }
 
-        public static byte[] DecryptWithAesAndRsa(byte[] data, string keyContainerName)
+        public static byte[] DecryptWithAesAndRsa(byte[] data, string keyContainerName, bool isXmlString)
         {
-            CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName };
-            RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(cspp);
+            RSACryptoServiceProvider rsa;
+            if (!isXmlString)
+            {
+                CspParameters cspp = new CspParameters { KeyContainerName = keyContainerName };
+                rsa = new RSACryptoServiceProvider(cspp);
+            }
+            else
+            {
+                rsa = new RSACryptoServiceProvider();
+                rsa.FromXmlString(keyContainerName);
+            }
+
             byte[] decryptedData;
 
             using (MemoryStream ms = new MemoryStream(data))
@@ -112,66 +128,6 @@ namespace MailClient
             return decryptedData;
         }
 
-        public static byte[] EncryptWithAesManaged(byte[] data, byte[] key, byte[] iv)
-        {
-            AesManaged aes = new AesManaged
-            {
-                Key = key,
-                IV = iv,
-                Mode = CipherMode.CBC
-            };
-            ICryptoTransform ct = aes.CreateEncryptor();
-            byte[] encData;
-
-            using (MemoryStream ms = new MemoryStream()) 
-            {
-                using (CryptoStream cs = new CryptoStream(ms, ct, CryptoStreamMode.Write))
-                {
-                    cs.Write(data, 0, data.Length);
-                }
-
-                encData = ms.ToArray();
-            }
-
-            return encData;
-        }
-
-        public static byte[] DecryptWithAesManaged(byte[] data, byte[] key, byte[] iv)
-        {
-            AesManaged aes = new AesManaged()
-            {
-                Key = key,
-                IV = iv,
-                Mode = CipherMode.CBC
-            };
-            ICryptoTransform ct = aes.CreateDecryptor();
-            byte[] decData = new byte[data.Length];
-
-            using (MemoryStream ms = new MemoryStream(data))
-            {
-                using (CryptoStream cs = new CryptoStream(ms, ct, CryptoStreamMode.Read))
-                {
-                    cs.Read(decData, 0, decData.Length);
-                }
-            }
-
-            return decData;
-        }
-
-        public static void EncryptFileWithAesManaged(string path, byte[] key, byte[] iv)
-        {
-            byte[] data = File.ReadAllBytes(path);
-            byte[] encData = Encrypter.EncryptWithAesManaged(data, key, iv);
-            File.WriteAllBytes(path, encData);
-        }
-
-        public static byte[] DecryptFileWithAesManaged(string path, byte[] key, byte[] iv)
-        {
-            byte[] decData = File.ReadAllBytes(path);
-            byte[] data = Encrypter.DecryptWithAesManaged(decData, key, iv);
-            return data;
-        }
-
         private static byte[] GetSha1Hash(byte[] data)
         {
             byte[] signedData;
@@ -180,23 +136,6 @@ namespace MailClient
                 signedData = sha1.ComputeHash(data);
             }
             return signedData;
-        }
-
-        private static byte[] ComputeHashAndAddIt(byte[] data)
-        {
-            byte[] dataWithHash;
-            byte[] hash = GetSha1Hash(data);
-            byte[] hashLength = BitConverter.GetBytes(hash.Length);
-
-            using (MemoryStream ms = new MemoryStream())
-            {
-                ms.Write(hashLength, 0, hashLength.Length);
-                ms.Write(hash, 0, hash.Length);
-                ms.Write(data, 0, data.Length);
-                dataWithHash = ms.ToArray();
-            }
-
-            return dataWithHash;
         }
 
         public static byte[] SignData(byte[] data, string keyContainerName)
@@ -214,7 +153,7 @@ namespace MailClient
             else
             {
                 File.WriteAllText(MainWindow.UserDirectoryPath + keyContainerName + ".akey",
-                    dsa.ToXmlString(true));
+                    dsa.ToXmlString(true)); // TODO: шифровать это
             }
 
             DSASignatureFormatter dsaFormatter = new DSASignatureFormatter(dsa);
@@ -253,13 +192,14 @@ namespace MailClient
             return dataWithoutSign;
         }
 
-        public static bool CheckSign(byte[] data, string keyContainerName)
+        public static bool CheckSign(byte[] data, string xmlStringPubKey)
         {
             bool checkResult;
 
             DSACryptoServiceProvider dsa = new DSACryptoServiceProvider();
-            dsa.FromXmlString(File.ReadAllText(
-                    MainWindow.UserDirectoryPath + keyContainerName + ".akey"));
+            
+            dsa.FromXmlString(xmlStringPubKey);
+
             DSASignatureDeformatter dSADeformatter = new DSASignatureDeformatter(dsa);
             dSADeformatter.SetHashAlgorithm("SHA1");
 
@@ -275,7 +215,7 @@ namespace MailClient
                 byte[] dat = ReturnDataWithoutHash(data);
                 byte[] hash = GetSha1Hash(dat);
 
-                checkResult = dSADeformatter.VerifySignature(hash, signedHash);  // TODO: вот здесь косяк
+                checkResult = dSADeformatter.VerifySignature(hash, signedHash);
             }
 
             return checkResult;
