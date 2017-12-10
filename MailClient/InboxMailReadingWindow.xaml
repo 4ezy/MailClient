@@ -9,12 +9,14 @@
         WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip">
     <Grid Margin="20, 0, 20, 10">
         <Grid.RowDefinitions>
-            <RowDefinition Height="145"/>
+            <RowDefinition Height="185"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
             <Label Content="От:"/>
             <TextBox x:Name="fromTextBox" IsReadOnly="True"/>
+            <Label Content="Кому:"/>
+            <TextBox x:Name="toTextBox" IsReadOnly="True"/>
             <Label Content="Дата:"/>
             <TextBox x:Name="dateTextBox" IsReadOnly="True"/>
             <Label Content="Тема:"/>

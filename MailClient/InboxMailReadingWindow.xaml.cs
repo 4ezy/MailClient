@@ -58,6 +58,32 @@ namespace MailClient
 
                 this.fromTextBox.Text = fromString.Trim(' ');
 
+                IList<MailAddress> to = Message.To;
+
+                string toString = string.Empty;
+
+                for (int i = 0; i < to.Count; i++)
+                {
+                    toString += to[i].Name;
+
+                    IList<MailBox> toAddresses = to[i].GetMailboxes();
+
+                    for (int j = 0; j < toAddresses.Count; j++)
+                    {
+                        toString += " (" + toAddresses[j].Address;
+
+                        if (j == toAddresses.Count - 1)
+                            toString += ")";
+                        else
+                            toString += ", ";
+                    }
+
+                    if (i < to.Count - 1)
+                        toString += ", ";
+                }
+
+                this.toTextBox.Text = toString.Trim(' ');
+
                 this.dateTextBox.Text = this.Message.Date.ToString();
 
                 this.subjectTextBox.Text = this.Message.Subject;
@@ -124,26 +150,34 @@ namespace MailClient
 
         private void SaveAttachmentsButton_Click(object sender, RoutedEventArgs e)
         {
-            SaveFileDialog sfd = new SaveFileDialog()
+            if (this.attachmentsListBox.SelectedIndex != -1)
             {
-                Title = "Сохранить файл",
-                FileName = (string)this.attachmentsListBox.SelectedItem,
-                Filter = "Все файлы (*.*)|*.*"
-            };
-            if (sfd.ShowDialog() == true)
+                SaveFileDialog sfd = new SaveFileDialog()
+                {
+                    Title = "Сохранить файл",
+                    FileName = (string)this.attachmentsListBox.SelectedItem,
+                    Filter = "Все файлы (*.*)|*.*"
+                };
+                if (sfd.ShowDialog() == true)
+                {
+                    if (this.decryptMessage.IsChecked == true)
+                    {
+                        byte[] signData = this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data; ;
+                        byte[] decData = this.TryDecryptData(signData);
+                        if (!decData.Equals(signData))
+                            File.WriteAllBytes(sfd.FileName, decData);
+                    }
+                    else
+                    {
+                        File.WriteAllBytes(sfd.FileName,
+                            this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data);
+                    }
+                }
+            }
+            else
             {
-                if (this.decryptMessage.IsChecked == true)
-                {
-                    byte[] signData = this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data; ;
-                    byte[] decData = this.TryDecryptData(signData);
-                    if (!decData.Equals(signData))
-                        File.WriteAllBytes(sfd.FileName, decData);
-                }
-                else
-                {
-                    File.WriteAllBytes(sfd.FileName, 
-                        this.Message.Attachments[this.attachmentsListBox.SelectedIndex].Data);
-                }
+                MessageBox.Show("Для сохранения файла его требуется выбрать.", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -488,7 +488,8 @@ namespace MailClient
                     case MessagesType.Sent:
                         IMail sentMail = this.CurrentUser.EmailBoxes[
                             this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
-                        SentMailReadingWindow sentMailReadingWindow = new SentMailReadingWindow(sentMail)
+                        SentMailReadingWindow sentMailReadingWindow = new SentMailReadingWindow(
+                            sentMail, this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex])
                         {
                             Owner = this
                         };
@@ -503,7 +504,8 @@ namespace MailClient
                     case MessagesType.Basket:
                         IMail basketMail = this.CurrentUser.EmailBoxes[
                             this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
-                        BasketMailReadingWindow basketMailReadingWindow = new BasketMailReadingWindow(basketMail)
+                        BasketMailReadingWindow basketMailReadingWindow = new BasketMailReadingWindow(
+                            basketMail, this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex])
                         {
                             Owner = this
                         };

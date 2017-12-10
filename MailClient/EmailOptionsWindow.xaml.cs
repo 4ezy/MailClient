@@ -55,9 +55,9 @@ namespace MailClient
                 EmailBox emailBox;
                 try
                 {
-                    emailBox = new EmailBox(this.emailAddressTextBox.Text, this.passwordPasswordBox.Password,
-                    this.imapServerAddressTextBox.Text, Convert.ToInt32(this.imapPortTextBox.Text),
-                    this.smtpServerAddressTextBox.Text, Convert.ToInt32(this.smtpPortTextBox.Text));
+                    emailBox = new EmailBox(this.emailAddressTextBox.Text.Trim(' '), this.passwordPasswordBox.Password,
+                    this.imapServerAddressTextBox.Text.Trim(' '), Convert.ToInt32(this.imapPortTextBox.Text),
+                    this.smtpServerAddressTextBox.Text.Trim(' '), Convert.ToInt32(this.smtpPortTextBox.Text));
                 }
                 catch (FormatException)
                 {
