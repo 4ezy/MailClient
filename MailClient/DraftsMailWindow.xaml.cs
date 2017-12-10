@@ -1,6 +1,4 @@
-﻿using Limilabs.Client.IMAP;
-using Limilabs.Client.SMTP;
-using Limilabs.Mail;
+﻿using Limilabs.Mail;
 using Limilabs.Mail.Headers;
 using Limilabs.Mail.MIME;
 using Microsoft.Win32;
@@ -18,28 +16,88 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace MailClient
 {
     /// <summary>
-    /// Логика взаимодействия для SendMailWindow.xaml
+    /// Логика взаимодействия для DraftsMailWindow.xaml
     /// </summary>
-    public partial class SendMailWindow : Window
+    public partial class DraftsMailWindow : Window
     {
         private EmailBox EmailBox { get; set; }
         private List<byte[]> Attachments { get; set; }
+        private IMail Message { get; set; }
+        private long MessageUID { get; set; }
         private Thread sendThread;
 
-        public SendMailWindow()
+        public DraftsMailWindow()
         {
             this.InitializeComponent();
         }
 
-        public SendMailWindow(EmailBox emailBox)
+        public DraftsMailWindow(EmailBox emailBox, IMail message, long messageUID)
         {
             this.InitializeComponent();
             this.EmailBox = emailBox;
+            this.Message = message;
             this.Attachments = new List<byte[]>();
+            this.MessageUID = messageUID;
+            this.ShowMessageInWindow();
+        }
+
+        private void ShowMessageInWindow()
+        {
+            try
+            {
+                IList<MailAddress> to = Message.To;
+
+                string toString = string.Empty;
+
+                IList<MailBox> toAddresses = to[0].GetMailboxes();
+                toString += toAddresses[0].Address;
+
+                this.toTextBox.Text = toString.Trim(' ');
+
+                this.subjectTextBox.Text = this.Message.Subject;
+
+                if (this.Message.IsText)
+                {
+                    this.textRichTextBox.AppendText(this.Message.Text);
+                }
+                else if (this.Message.IsRtf)
+                {
+                    this.SetStringRtfToRichTextBox(this.Message.Rtf, this.textRichTextBox);
+                }
+                else if (this.Message.IsHtml)
+                {
+                    this.textRichTextBox.AppendText(this.Message.GetTextFromHtml());
+                }
+
+                foreach (MimeData item in this.Message.Attachments)
+                {
+                    this.attachmentsListBox.Items.Add(item.FileName);
+                }
+            }
+            catch (NullReferenceException)
+            {
+                throw;
+            }
+        }
+
+        private void SetStringRtfToRichTextBox(string message, RichTextBox richTextBox)
+        {
+            File.WriteAllText(MainWindow.UserDirectoryPath + "tmp.rtf", message);
+
+            TextRange tr = new TextRange(richTextBox.Document.ContentStart,
+                richTextBox.Document.ContentEnd);
+
+            using (FileStream fs = File.Open(MainWindow.UserDirectoryPath + "tmp.rtf", FileMode.Open))
+            {
+                tr.Load(fs, DataFormats.Rtf);
+            }
+
+            File.Delete(MainWindow.UserDirectoryPath + "tmp.rtf");
         }
 
         private void LoadAttachmentsButton_Click(object sender, RoutedEventArgs e)
@@ -166,12 +224,13 @@ namespace MailClient
                 });
 
                 this.EmailBox.Smtp.SendMessage(mail);
-                
+
                 this.Dispatcher.Invoke(() =>
                 {
                     this.Close();
                     this.sendButton.IsEnabled = true;
                     Mouse.OverrideCursor = null;
+                    this.EmailBox.Imap.DeleteMessageByUID(this.MessageUID);
                 });
             });
             sendThread.Start();
@@ -188,22 +247,6 @@ namespace MailClient
             {
                 sendThread.Abort();
                 sendThread.Join();
-            }
-
-            if (this.toTextBox.Text != null &&
-                this.toTextBox.Text != String.Empty)
-            {
-                string to = this.toTextBox.Template is null ? String.Empty : this.toTextBox.Text.Trim(' ');
-                string subject = this.subjectTextBox.Text is null ? String.Empty : this.subjectTextBox.Text.Trim(' ');
-
-                string rtfText = this.GetTextFromRichTextBox(this.textRichTextBox);
-                string rtf = rtfText is null ? String.Empty : this.GetTextFromRichTextBox(this.textRichTextBox);
-
-                this.sendButton.IsEnabled = false;
-                this.cancelButton.IsEnabled = false;
-                Mouse.OverrideCursor = Cursors.AppStarting;
-                this.AddMessageToDrafts(to, subject, rtf);
-                Mouse.OverrideCursor = null;
             }
         }
 

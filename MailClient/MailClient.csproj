@@ -64,6 +64,9 @@
       <DependentUpon>BasketMailReadingWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="BinarySerializer.cs" />
+    <Compile Include="DraftsMailWindow.xaml.cs">
+      <DependentUpon>DraftsMailWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="EmailBox.cs" />
     <Compile Include="EmailOptionsWindow.xaml.cs">
       <DependentUpon>EmailOptionsWindow.xaml</DependentUpon>
@@ -90,6 +93,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="BasketMailReadingWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DraftsMailWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

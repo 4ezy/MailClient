@@ -217,6 +217,34 @@ namespace MailClient
             }
         }
 
+        public void UploadMessageToDrafts(IMail mail)
+        {
+            List<FolderInfo> list = imap.GetFolders();
+            FolderInfo folder = null;
+
+            try
+            {
+                folder = (from f in list
+                          where f.ShortName == "Черновики"
+                          select f).First();
+            }
+            catch (Exception)
+            {
+                folder = null;
+            }
+
+            try
+            {
+                imap.Select(folder);
+            }
+            catch (NullReferenceException)
+            {
+                throw new Exception("Папки с таким именем не существует.");
+            }
+
+            this.imap.UploadMessage(folder, mail);
+        }
+
         public IMail DownloadMessage(long uid)
         {
             byte[] eml = imap.GetMessageByUID(uid);

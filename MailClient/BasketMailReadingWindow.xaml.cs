@@ -120,7 +120,8 @@ namespace MailClient
 
         private void SetStringRtfToRichTextBox(string message, RichTextBox richTextBox)
         {
-            File.WriteAllText(MainWindow.UserDirectoryPath + "tmp.rtf", message);
+            byte[] str = Convert.FromBase64String(message);
+            File.WriteAllBytes(MainWindow.UserDirectoryPath + "tmp.rtf", str);
 
             TextRange tr = new TextRange(richTextBox.Document.ContentStart,
                 richTextBox.Document.ContentEnd);

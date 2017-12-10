@@ -500,6 +500,22 @@ namespace MailClient
                         });
                         break;
                     case MessagesType.Drafts:
+                        if (this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Smtp == null ||
+                            !this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Smtp.Connected)
+                        {
+                            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectSmtp();
+                        }
+
+                        IMail draftMail = this.CurrentUser.EmailBoxes[
+                            this.CurrentUser.SelectedEmailBoxIndex].DownloadMessage(messageUid);
+                        DraftsMailWindow sendMailWindow = new DraftsMailWindow(
+                            this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex],
+                            draftMail, messageUid)
+                        {
+                            Owner = this
+                        };
+                        sendMailWindow.ShowDialog();
+                        this.DownloadMessagesToClient(this.messagesType);
                         break;
                     case MessagesType.Basket:
                         IMail basketMail = this.CurrentUser.EmailBoxes[
@@ -523,23 +539,25 @@ namespace MailClient
 
         private void WriteMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            if (inboxThread != null && inboxThread.IsAlive)
+            {
+                inboxThread.Abort();
+                inboxThread.Join();
+            }
+
             if (this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Smtp == null ||
                 !this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].Smtp.Connected)
             {
                 this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex].ConnectSmtp();
             }
-                
 
             SendMailWindow sendMailWindow = new SendMailWindow(
                 this.CurrentUser.EmailBoxes[this.CurrentUser.SelectedEmailBoxIndex])
             {
                 Owner = this
             };
-            sendMailWindow.Show();
-            sendMailWindow.Closed += ((object sndr, EventArgs evArg) =>
-            {
-                this.DownloadMessagesToClient(this.messagesType);
-            });
+            sendMailWindow.ShowDialog();
+            this.DownloadMessagesToClient(this.messagesType);
         }
 
         private void ImportPublicCipherKeyMenuItem_Click(object sender, RoutedEventArgs e)
