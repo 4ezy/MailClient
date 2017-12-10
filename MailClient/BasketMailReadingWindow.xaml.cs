@@ -128,7 +128,14 @@ namespace MailClient
 
             using (FileStream fs = File.Open(MainWindow.UserDirectoryPath + "tmp.rtf", FileMode.Open))
             {
-                tr.Load(fs, DataFormats.Rtf);
+                try
+                {
+                    tr.Load(fs, DataFormats.Rtf);
+                }
+                catch (ArgumentException)
+                {
+                    tr.Text = message;
+                }
             }
 
             File.Delete(MainWindow.UserDirectoryPath + "tmp.rtf");
